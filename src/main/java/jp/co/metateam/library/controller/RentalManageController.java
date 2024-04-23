@@ -63,7 +63,7 @@ public class RentalManageController {
 
     @GetMapping("/rental/add")
     public String add(Model model) {
-        
+      
         //テーブルから持ってくる
         List<Stock> stockList= this.stockService.findStockAvailableAll();
         List<Account> accountList=this.accountService.findAll();
