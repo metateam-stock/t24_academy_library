@@ -60,7 +60,7 @@ public class RentalManageController {
         // 貸出一覧画面に遷移
         return "/rental/index";
     }
- 
+
     @GetMapping("/rental/add")
     public String add(Model model) {
         List<Stock> stockList = this.stockService.findAll();
