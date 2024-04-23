@@ -2,6 +2,7 @@ package jp.co.metateam.library.model;
 
 import java.util.Date;
 import java.sql.Timestamp;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
