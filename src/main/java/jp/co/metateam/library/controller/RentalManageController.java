@@ -75,7 +75,6 @@ import jp.co.metateam.library.values.RentalStatus;
         model.addAttribute("RentalManageList", rentalManageList);
         model.addAttribute("rentalStatus", RentalStatus. values());
         model.addAttribute("stockList", stockList);
-
         model.addAttribute("accounts",accounts);
         if (!model.containsAttribute("rentalManageDto")) { 
                 model.addAttribute("rentalManageDto", new RentalManageDto()); 
