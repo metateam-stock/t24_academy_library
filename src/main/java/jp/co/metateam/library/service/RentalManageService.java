@@ -2,7 +2,6 @@ package jp.co.metateam.library.service;
 
 import java.sql.Timestamp;
 import java.util.List;
-//import java.util.text.SimpleDateFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
