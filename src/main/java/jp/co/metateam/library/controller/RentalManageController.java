@@ -63,12 +63,11 @@ public class RentalManageController {
 
     @GetMapping("/rental/add")
     public String add(Model model) {
+        
         //テーブルから持ってくる
-        List<RentalManage> rentalManageList = this.rentalManageService.findAll();
         List<Stock> stockList= this.stockService.findStockAvailableAll();
         List<Account> accountList=this.accountService.findAll();
     
-        //model.addAttribute("rentalManageList", rentalManageList);
         //在庫管理番号モデル
         model.addAttribute("stockList", stockList);
         //貸出ステータスモデル
