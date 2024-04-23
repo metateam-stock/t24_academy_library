@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.validation.Valid;
 
-
-
 import jp.co.metateam.library.service.AccountService;
 import jp.co.metateam.library.service.RentalManageService;
 import jp.co.metateam.library.service.StockService;
@@ -66,12 +64,10 @@ public class RentalManageController {
      @GetMapping("/rental/add")
     public String add(Model model) {
         List <RentalManage> rentalManageList = this.rentalManageService.findAll();
-        //account,stock番号と書籍名,rental
         List <Account> accountList = this.accountService.findAll();
         List <Stock> stockList = this.stockService.findAll();
 
        model.addAttribute("rentalStatus", RentalStatus.values());
-       //model.addAttribute("RentalManageList", rentalManageList);
        model.addAttribute("accounts", accountList);
        model.addAttribute("stockList", stockList);
 
