@@ -1,3 +1,4 @@
+[16:23] MT 桑原 南帆
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <!-- (1)共通にしたいheadをfragment化する -->
@@ -9,7 +10,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <!-- (3)タイトルのフォーマット -->
     <title th:text="${title}+' | MTLibrary'">各ページタイトル | MTLibrary</title>
-
+ 
     <!-- (4)各View固有で読み込むもの -->
     <th:block th:replace="${links} ?: _" />
     <th:block th:replace="${scripts} ?: _" />
@@ -22,7 +23,7 @@
                 <span>管理者</span><img class="under_arrow" th:src="@{/images/icons/under_arrow.png}"/>
             </label>
         </div>
-        
+       
         <div class="menu_container">
             <input type="checkbox" id="menu1" class="on-off" />
             <div class="menu">
@@ -33,11 +34,11 @@
             </div>
         </div>
     </div>
-
+ 
     <div class="sidebar" th:fragment="common_sidebar">
         <div class="app_name">MT書籍管理</div>
     </div>
-
+ 
     <div class="sidebar" th:fragment="main_sidebar">
         <div class="app_name">MT書籍管理</div>
         <div id="sidebar_menu">
@@ -57,9 +58,20 @@
                     <a class="menu_link" th:href="@{/stock/add}">在庫登録</a>
                 </div>
             </details>
+            <div class="menu_item">
+                <a class="menu_link" th:href="@{/stock/calendar}"><img th:src="@{/images/icons/calendar.png}" alt="calendar"/>在庫カレンダー</a>
+            </div>
+            <details class="menu_inner">
+                <summary class="menu_item">
+                    <a class="menu_link" th:href="@{/rental/index}"><img th:src="@{/images/icons/rental.png}" alt="book" />貸出一覧</a>
+                </summary>
+                <div class="menu_item second">
+                    <a class="menu_link" th:href="@{/rental/add}">貸出登録</a>
+                </div>
+            </details>
         </div>
     </div>
-
+ 
     <footer th:fragment="footer">
         <div>
             Copyright 2024 ＭＥＴＡＴＥＡＭ株式会社
@@ -67,3 +79,4 @@
     </footer>
 </body>
 </html>
+ 
