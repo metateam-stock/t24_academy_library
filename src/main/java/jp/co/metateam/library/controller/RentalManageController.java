@@ -61,7 +61,6 @@ public class RentalManageController {
     }
 
     @GetMapping("/rental/add")
-    //データを取得する
     public String add(Model model) {
         
         List<Account> accountList = this.accountService.findAll();
@@ -79,7 +78,6 @@ public class RentalManageController {
     }
     
     @PostMapping("/rental/add")
-    //データをサーバーに送信する
     public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
         try {
             if (result.hasErrors()) {
