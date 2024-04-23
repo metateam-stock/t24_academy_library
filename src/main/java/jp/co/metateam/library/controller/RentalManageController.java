@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import jakarta.validation.Valid;
+import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.RentalManage;
+import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.model.BookMst;
 import jp.co.metateam.library.service.AccountService;
 import jp.co.metateam.library.model.RentalManageDto;
@@ -64,10 +66,13 @@ public class RentalManageController {
     
     @GetMapping("/rental/add")
     public String add(Model model, @ModelAttribute RentalManageDto rentalManageDto) {
-        List<BookMst> bookMstList = this.bookMstService.findAll();
+        List<RentalManage> rentalManageList = this.rentalManageService.findAll();
+        List <Stock> stockList = this.stockService.findAll();
+        List <Account> accounts = this.accountService.findAll();
 
-        model.addAttribute("bookMstList", bookMstList);
         model.addAttribute("RentalStatus", RentalStatus.values());
+        model.addAttribute("stockList", stockList);
+        model.addAttribute("accounts", accounts);
 
         if (!model.containsAttribute("rentalManageDto")) {
             model.addAttribute("rentalManageDto", new RentalManageDto());
