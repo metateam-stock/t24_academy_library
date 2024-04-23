@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * 貸出管理DTO
  */
@@ -45,4 +47,6 @@ public class RentalManageDto {
     private Stock stock;
 
     private Account account;
+
+    private List<RentalManageDto> rentalManageDto;
 }
