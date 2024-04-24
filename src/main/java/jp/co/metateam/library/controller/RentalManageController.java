@@ -27,7 +27,7 @@ import jp.co.metateam.library.values.RentalStatus;
 @Log4j2
 @Controller
 public class RentalManageController {
- 
+
     private final AccountService accountService;
     private final RentalManageService rentalManageService;
     private final StockService stockService;
