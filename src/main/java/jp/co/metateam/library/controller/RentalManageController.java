@@ -92,7 +92,6 @@ public class RentalManageController {
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.stockDto", result);
 
-           
             return "redirect:/rental/add";
         } 
 }
