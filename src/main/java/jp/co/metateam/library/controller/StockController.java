@@ -50,12 +50,15 @@ public class StockController {
 
     @GetMapping("/stock/add")
     public String add(Model model) {
+        //変数bookMstListにstockテーブルのすべてのデータを取得している
         List<BookMst> bookMstList = this.bookMstService.findAll();
-
+        //画面上の"bookMstList"に上で取得したbookMstListの情報を入れている
         model.addAttribute("bookMstList", bookMstList);
+        //画面上の"stockStatus"に在庫ステータスのデータを入れる
         model.addAttribute("stockStatus", StockStatus.values());
-
+        //stockDtoに上の情報の書籍がない場合
         if (!model.containsAttribute("stockDto")) {
+            //画面上の"stockDto"に新しいStockDtoとして登録する
             model.addAttribute("stockDto", new StockDto());
         }
 

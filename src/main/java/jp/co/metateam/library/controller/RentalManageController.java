@@ -64,17 +64,18 @@ public class RentalManageController {
     @GetMapping("/rental/add")
     public String add(Model model) {
       
-        //テーブルから持ってくる
+        //在庫が利用可能な在庫テーブルからデータを取得
         List<Stock> stockList= this.stockService.findStockAvailableAll();
+        //アカウントテーブルから全件取得
         List<Account> accountList=this.accountService.findAll();
     
-        //在庫管理番号モデル
+        //在庫管理番号のデータをmodelに追加
         model.addAttribute("stockList", stockList);
-        //貸出ステータスモデル
+        //貸出ステータスのデータをmodelに追加
         model.addAttribute("rentalStatus", RentalStatus.values());
-        //社員番号モデル
+        //社員番号のデータをmodelに追加
         model.addAttribute("accounts",accountList);
-
+        //rentalMnageDtoに存在しなかったら、rentalMnageDtoに新しく登録？
         if (!model.containsAttribute("rentalManageDto")) {
             model.addAttribute("rentalManageDto", new RentalManageDto());
         }
@@ -84,7 +85,7 @@ public class RentalManageController {
 
     @PostMapping("/rental/add")
     public String save(@Valid @ModelAttribute RentalManageDto RentalManageDto, BindingResult result, RedirectAttributes ra) {
-        try {
+        try {//エラーがあったらバリデーションエラーを表示
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
