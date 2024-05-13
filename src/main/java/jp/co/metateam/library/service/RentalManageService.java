@@ -6,11 +6,15 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 
+import io.micrometer.common.util.StringUtils;
 import jp.co.metateam.library.model.Account;
+import jp.co.metateam.library.model.BookMst;
 import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.RentalManageDto;
 import jp.co.metateam.library.model.Stock;
+import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.repository.AccountRepository;
 import jp.co.metateam.library.repository.RentalManageRepository;
 import jp.co.metateam.library.repository.StockRepository;
@@ -88,4 +92,34 @@ public class RentalManageService {
 
         return rentalManage;
     }
+
+    @Transactional 
+    public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
+        try {
+            RentalManage rentalManage = findById(Long.valueOf(id));  //DBに登録されているデータを持ってきている
+
+            Account account = rentalManage.getAccount();
+            if (account == null) {
+                throw new Exception("Account not found.");
+            }
+
+            Stock stock = rentalManage.getStock();
+            if (stock == null) {
+                throw new Exception("Stock record not found.");
+            }
+
+            rentalManage.setAccount(account);
+            rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
+            rentalManage.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
+            rentalManage.setStatus(rentalManageDto.getStatus());
+            rentalManage.setStock(stock);
+
+            // データベースへの保存
+            this.rentalManageRepository.save(rentalManage);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    
 }
