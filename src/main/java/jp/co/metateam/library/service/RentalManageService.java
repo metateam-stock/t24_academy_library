@@ -6,32 +6,45 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 
+import io.micrometer.common.util.StringUtils;
 import jp.co.metateam.library.model.Account;
+import jp.co.metateam.library.model.BookMst;
+import jp.co.metateam.library.model.BookMstDto;
 import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.RentalManageDto;
 import jp.co.metateam.library.model.Stock;
+import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.repository.AccountRepository;
+import jp.co.metateam.library.repository.BookMstRepository;
 import jp.co.metateam.library.repository.RentalManageRepository;
 import jp.co.metateam.library.repository.StockRepository;
 import jp.co.metateam.library.values.RentalStatus;
 
 @Service
 public class RentalManageService {
-
+    
     private final AccountRepository accountRepository;
     private final RentalManageRepository rentalManageRepository;
     private final StockRepository stockRepository;
+   // private final StockService stockService;
+   // private final AccountService accountService;
+
 
      @Autowired
     public RentalManageService(
         AccountRepository accountRepository,
         RentalManageRepository rentalManageRepository,
         StockRepository stockRepository
+        //StockService stockService,
+        //AccountService accountService
     ) {
         this.accountRepository = accountRepository;
         this.rentalManageRepository = rentalManageRepository;
         this.stockRepository = stockRepository;
+        //this.stockService=stockService;
+        //this.accountService=accountService;
     }
 
     @Transactional
@@ -75,6 +88,40 @@ public class RentalManageService {
         }
     }
 
+    @Transactional
+    public void update(Long id, RentalManageDto rentalManageDto/* ,Model model*/) throws Exception {
+        try {
+            // 既存レコード取得
+            Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
+            RentalManage updateTargetBook = this.rentalManageRepository.findById(id).orElse(null);
+            Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);
+
+        
+            if (updateTargetBook == null) {
+                throw new Exception("RentalManage record not found.");
+            }
+            if (account == null) {
+                throw new Exception("Account not found.");
+            }
+            if (stock == null) {
+                throw new Exception("Stock not found.");
+            }
+
+            updateTargetBook.setId(rentalManageDto.getId());
+            updateTargetBook.setAccount(account);
+            updateTargetBook.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
+            updateTargetBook.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
+            updateTargetBook.setStatus(rentalManageDto.getStatus());
+            updateTargetBook.setStock(stock);
+
+            // データベースへの保存
+            this.rentalManageRepository.save(updateTargetBook);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         
@@ -88,4 +135,7 @@ public class RentalManageService {
 
         return rentalManage;
     }
+
+    
+
 }

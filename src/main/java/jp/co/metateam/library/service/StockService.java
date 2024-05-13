@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jp.co.metateam.library.constants.Constants;
 import jp.co.metateam.library.model.BookMst;
+import jp.co.metateam.library.model.BookMstDto;
 import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.repository.BookMstRepository;
@@ -69,30 +70,55 @@ public class StockService {
         }
     }
 
-    @Transactional 
-    public void update(String id, StockDto stockDto) throws Exception {
+     @Transactional
+    public void update(Long id, StockDto stockDto) throws Exception {
         try {
-            Stock stock = findById(id);
-            if (stock == null) {
-                throw new Exception("Stock record not found.");
+            // 既存レコード取得
+            Stock updateTargetBook = this.stockRepository.findById(id).orElse(null);
+            if (updateTargetBook == null) {
+                throw new Exception("BookMst record not found.");
             }
-
-            BookMst bookMst = stock.getBookMst();
+            BookMst bookMst = updateTargetBook.getBookMst();
             if (bookMst == null) {
                 throw new Exception("BookMst record not found.");
             }
 
-            stock.setId(stockDto.getId());
-            stock.setBookMst(bookMst);
-            stock.setStatus(stockDto.getStatus());
-            stock.setPrice(stockDto.getPrice());
+            updateTargetBook.setId(stockDto.getId());
+            updateTargetBook.setStatus(stockDto.getStatus());
+            updateTargetBook.setPrice(stockDto.getPrice());
 
             // データベースへの保存
-            this.stockRepository.save(stock);
+            this.stockRepository.save(updateTargetBook);
         } catch (Exception e) {
             throw e;
         }
     }
+
+    /*@Transactional 
+    public void update(Long id, StockDto stockDto) throws Exception {
+        try {
+            // 既存レコード取得
+            Stock updateTargetBook = this.stockRepository.findById(id).orElse(null);
+            if (updateTargetBook == null) {
+                throw new Exception("Stock record not found.");
+            }
+
+            BookMst bookMst = updateTargetBook.getBookMst();
+            if (bookMst == null) {
+                throw new Exception("BookMst record not found.");
+            }
+
+            updateTargetBook.setId(stockDto.getId());
+            //updateTargetBook.setBookMst(bookMst);
+            updateTargetBook.setStatus(stockDto.getStatus());
+            updateTargetBook.setPrice(stockDto.getPrice());
+
+            // データベースへの保存
+            this.stockRepository.save(updateTargetBook);
+        } catch (Exception e) {
+            throw e;
+        }
+    }*/
 
     public List<Object> generateDaysOfWeek(int year, int month, LocalDate startDate, int daysInMonth) {
         List<Object> daysOfWeek = new ArrayList<>();

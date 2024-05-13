@@ -11,17 +11,23 @@ import jp.co.metateam.library.service.StockService;
 import lombok.extern.log4j.Log4j2;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.StockDto;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import jp.co.metateam.library.model.RentalManageDto;
 import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.service.AccountService;
 import jp.co.metateam.library.model.Account;
+import jp.co.metateam.library.model.BookMst;
 import jp.co.metateam.library.values.RentalStatus;
+import jp.co.metateam.library.values.StockStatus;
+
 import java.util.List;
 
 /**
@@ -102,5 +108,73 @@ public class RentalManageController {
             return "redirect:/rental/add";
         }
     }
+    //貸出編集画面のHTMLとControllerの画面をつなぐGETメソッドコード
+     @GetMapping("/rental/{id}/edit")
+    public String edit(@PathVariable("id") String id, Model model) {
+        List<Account> accountList=this.accountService.findAll();
+        List<Stock> stockList= this.stockService.findStockAvailableAll();
+        
+        model.addAttribute("stockList", stockList);
+        model.addAttribute("rentalStatus", RentalStatus.values());
+        model.addAttribute("accounts",accountList);
+        
+        RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));
+
+        if (!model.containsAttribute("rentalManageDto")) {
+            RentalManageDto rentalManageDto= new RentalManageDto();
+           
+            rentalManageDto.setId(rentalManage.getId());
+            rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
+            rentalManageDto.setExpectedRentalOn(rentalManage.getExpectedRentalOn());
+            rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
+            rentalManageDto.setStockId(rentalManage.getStock().getId());
+            rentalManageDto.setStatus(rentalManage.getStatus());
+
+
+            model.addAttribute("rentalManageDto", rentalManageDto);
+        }
+
+        return "rental/edit";
+    }
+
+    @PostMapping("/rental/{id}/edit")
+    //BindingResult resultにRentalManageDtoでの入力チェックを行った情報を入れている
+    public String update(@PathVariable("id") String id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
+        try {
+            RentalManage rentalManage=this.rentalManageService.findById(Long.valueOf(id));
+            String validerro=rentalManageDto.isStatusError(rentalManage.getStatus());
+            if(validerro != null){
+            result.addError(new FieldError("rentalManageDto","status",validerro));
+            }
+            //「resultにエラーがある」がtrueだったら
+            if (result.hasErrors()) {
+                throw new Exception("Validation error.");
+            }
+            //在庫ステータスの利用可否
+            
+            // 登録処理
+            rentalManageService.update(Long.valueOf(id), rentalManageDto);
+
+            return "redirect:/rental/index";
+        } catch (Exception e) {
+            log.error(e.getMessage());
+
+            //エラー表示後にもリストにデータを入れる必要がある
+
+            ra.addFlashAttribute("rentalManageDto", rentalManageDto);
+            ra.addFlashAttribute("org.springframework.validation.BindingResult.stockDto", result);
+
+            List<Account> accountList=this.accountService.findAll();
+            List<Stock> stockList= this.stockService.findStockAvailableAll();
+        
+            model.addAttribute("stockList", stockList);
+            model.addAttribute("rentalStatus", RentalStatus.values());
+            model.addAttribute("accounts",accountList);
+
+            return "/rental/edit";
+        }
+    }
+
+    
 
 }

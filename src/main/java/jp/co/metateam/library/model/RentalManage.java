@@ -57,6 +57,8 @@ public class RentalManage {
     @JoinColumn(name = "employee_id", referencedColumnName = "employee_id", nullable = false)
     private Account account;
 
+   
+
     /** Getters */
 
     public Long getId() {
@@ -90,6 +92,8 @@ public class RentalManage {
     public Stock getStock() {
         return stock;
     }
+
+
 
     public Account getAccount() {
         return account;
