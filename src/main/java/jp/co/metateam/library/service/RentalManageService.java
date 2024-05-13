@@ -28,23 +28,16 @@ public class RentalManageService {
     private final AccountRepository accountRepository;
     private final RentalManageRepository rentalManageRepository;
     private final StockRepository stockRepository;
-   // private final StockService stockService;
-   // private final AccountService accountService;
-
 
      @Autowired
     public RentalManageService(
         AccountRepository accountRepository,
         RentalManageRepository rentalManageRepository,
         StockRepository stockRepository
-        //StockService stockService,
-        //AccountService accountService
     ) {
         this.accountRepository = accountRepository;
         this.rentalManageRepository = rentalManageRepository;
         this.stockRepository = stockRepository;
-        //this.stockService=stockService;
-        //this.accountService=accountService;
     }
 
     @Transactional
@@ -89,7 +82,7 @@ public class RentalManageService {
     }
 
     @Transactional
-    public void update(Long id, RentalManageDto rentalManageDto/* ,Model model*/) throws Exception {
+    public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
         try {
             // 既存レコード取得
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
@@ -107,7 +100,7 @@ public class RentalManageService {
                 throw new Exception("Stock not found.");
             }
 
-            updateTargetBook.setId(rentalManageDto.getId());
+            //updateTargetBook.setId(rentalManageDto.getId());
             updateTargetBook.setAccount(account);
             updateTargetBook.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
             updateTargetBook.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());

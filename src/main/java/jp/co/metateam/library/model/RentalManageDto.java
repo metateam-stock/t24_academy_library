@@ -61,7 +61,7 @@ public class RentalManageDto {
         }else if(preStatus==RentalStatus.CANCELED.getValue() && this.status==RentalStatus.RETURNED.getValue()){
             return "「キャンセル」から「返却済み」は選択できません";
         }else{
-            return "";
+            return null;
         }
     }
 
