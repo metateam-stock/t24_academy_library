@@ -150,7 +150,7 @@ public class RentalManageController {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
-            //在庫ステータスの利用可否
+            //在庫ステータスの利用可否？でもGETマッピングでリストの中に「貸出可」の書籍のみを取得しているからいらないのではないかと考えた
             
             // 登録処理
             rentalManageService.update(Long.valueOf(id), rentalManageDto);
