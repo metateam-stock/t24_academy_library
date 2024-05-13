@@ -6,7 +6,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 
+import io.micrometer.common.util.StringUtils;
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.RentalManageDto;
@@ -74,7 +76,38 @@ public class RentalManageService {
             throw e;
         }
     }
+    //@Transactional 
+    /*public void (Long id, RentalManageDto rentalManageDto)throws Exception {
+        try {
+            Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
+            if (account == null) {
+                throw new Exception("Account not found.");
+            }
 
+            Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);
+            if (stock == null) {
+                throw new Exception("Stock not found.");
+            }
+
+            RentalManage rentalManage = new RentalManage();
+            rentalManage = setRentalStatusDate(rentalManage, rentalManageDto.getStatus());
+
+
+
+            rentalManageDto.setId(rentalManage.getId());
+            rentalManage.setAccount(account);
+            rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
+            rentalManage.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
+            rentalManage.setStatus(rentalManageDto.getStatus());
+            rentalManage.setStock(stock);
+
+            // データベースへの保存
+            this.rentalManageRepository.save(rentalManage);
+        } catch (Exception e) {
+            throw e;
+        }
+    }*/
+    
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         
@@ -87,5 +120,31 @@ public class RentalManageService {
         }
 
         return rentalManage;
+    } 
+    @Transactional 
+    public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
+        try {
+
+            Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
+            Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);
+            RentalManage updateTargetRental = findById(Long.valueOf(id));
+            if(updateTargetRental == null){
+                throw new Exception("RentalManage record not found.");
+            }
+
+            
+            updateTargetRental.setAccount(account);
+            updateTargetRental.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
+            updateTargetRental.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
+            updateTargetRental.setStatus(rentalManageDto.getStatus());
+            updateTargetRental.setStock(stock);
+
+            this.rentalManageRepository.save(updateTargetRental);
+       
+        }catch (Exception e) {
+           throw e;
+        }
+    
     }
 }
+
