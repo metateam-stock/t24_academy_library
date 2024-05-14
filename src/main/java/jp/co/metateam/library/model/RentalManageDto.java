@@ -45,4 +45,5 @@ public class RentalManageDto {
     private Stock stock;
 
     private Account account;
+
 }

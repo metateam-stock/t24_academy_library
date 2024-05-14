@@ -93,7 +93,7 @@ public class StockService {
             throw e;
         }
     }
-
+ 
     public List<Object> generateDaysOfWeek(int year, int month, LocalDate startDate, int daysInMonth) {
         List<Object> daysOfWeek = new ArrayList<>();
         for (int dayOfMonth = 1; dayOfMonth <= daysInMonth; dayOfMonth++) {
