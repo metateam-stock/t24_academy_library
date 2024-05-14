@@ -59,22 +59,26 @@ public class RentalManageDto {
 
     public Optional<String> isValidRentalStatus(Integer previousRentalStetas) {  
 
-        String currentStatusText = RentalStatus.getText(this.status);
+        
 
                 
         if (previousRentalStetas == RentalStatus.RENT_WAIT.getValue() && this.status != previousRentalStetas) {
+            String currentStatusText = RentalStatus.getText(this.status);
             // 貸出ステータスが返却済みになっている場合
             if (this.status == RentalStatus.RETURNED.getValue()) {
                 return Optional.of("貸出ステータスは貸出待ちから" + currentStatusText + "に変更できません");
             }
         } else if (previousRentalStetas == RentalStatus.RENTAlING.getValue() && this.status != previousRentalStetas) {
+            String currentStatusText = RentalStatus.getText(this.status);
             // 貸出ステータスが返却済み以外になっている場合
             if (this.status != RentalStatus.RETURNED.getValue()) {
                 return Optional.of("貸出ステータスは貸出中から" + currentStatusText + "に変更できません");
             }
         } else if (previousRentalStetas == RentalStatus.RETURNED.getValue() && this.status != previousRentalStetas) {
+            String currentStatusText = RentalStatus.getText(this.status);
             return Optional.of("貸出ステータスは返却済みから" + currentStatusText + "に変更できません");         // 貸出ステータスが返却済みから変更されている場合
         } else if (previousRentalStetas == RentalStatus.CANCELED.getValue() && this.status != previousRentalStetas) {
+            String currentStatusText = RentalStatus.getText(this.status);
             return Optional.of("貸出ステータスはキャンセルから" + currentStatusText + "に変更できません");             // 貸出ステータスがキャンセルから変更されている場合
         }
 
