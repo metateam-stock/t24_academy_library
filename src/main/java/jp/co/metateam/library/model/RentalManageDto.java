@@ -7,8 +7,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jp.co.metateam.library.values.RentalStatus;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Optional;
 
 /**
  * 貸出管理DTO
@@ -44,5 +47,29 @@ public class RentalManageDto {
 
     private Stock stock;
 
-    private Account account;
+    private Account account;  
+
+public Optional<String> isStatusError(Integer oldStatus, Integer status) {
+        if (oldStatus == RentalStatus.RENT_WAIT.getValue()&& status == RentalStatus.RETURNED.getValue()) {
+            return Optional.of("貸出待ちから返却済みは選択できません");
+        } else if (oldStatus == RentalStatus.RENTAlING.getValue()&& status == RentalStatus.RENT_WAIT.getValue()) {
+            return Optional.of("貸出中から貸出待ちは選択できません");
+        }else if(oldStatus == RentalStatus.RENTAlING.getValue()&& status == RentalStatus.CANCELED.getValue()) {
+            return Optional.of("貸出中からキャンセルは選択できません");
+        }else if(oldStatus == RentalStatus.RETURNED.getValue()&& status == RentalStatus.RENT_WAIT.getValue()) {
+            return Optional.of("貸出済みから貸出待ちは選択できません");
+        }else if(oldStatus == RentalStatus.RETURNED.getValue()&& status == RentalStatus.RENTAlING.getValue()) {
+            return Optional.of("貸出済みから貸出中は選択できません");
+        }else if(oldStatus == RentalStatus.RETURNED.getValue()&& status == RentalStatus.CANCELED.getValue()) {
+            return Optional.of("貸出済みからキャンセルは選択できません");
+        }else if(oldStatus == RentalStatus.CANCELED.getValue()&& status == RentalStatus.RENT_WAIT.getValue()) {
+            return Optional.of("キャンセルから貸出待ちは選択できません");
+        }else if(oldStatus == RentalStatus.CANCELED.getValue()&& status == RentalStatus.RENTAlING.getValue()) {
+            return Optional.of("キャンセルから貸出中は選択できません");
+        }else if(oldStatus == RentalStatus.CANCELED.getValue()&& status == RentalStatus.RETURNED.getValue()) {
+            return Optional.of("キャンセルから貸出済みは選択できません");
+        }else{
+            return Optional.empty(); // 遷移が正しい場合は空のOptionalを返す
+        }
+    }
 }
