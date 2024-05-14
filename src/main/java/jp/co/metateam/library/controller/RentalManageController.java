@@ -95,9 +95,18 @@ public class RentalManageController {
      @PostMapping("/rental/add")
      public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
          try {                     
-             if (result.hasErrors()) {
-                 throw new Exception("Validation error.");
-             }
+            if (result.hasErrors()) {
+                throw new Exception("Validation error.");
+            }
+
+
+            //日付妥当性チェック
+            Optional<String> returnDateValidationError = rentalManageDto.validateReturnDate();
+            if (returnDateValidationError.isPresent()) {
+                FieldError fieldError = new FieldError("rentalManageDto", "expectedReturnOn", returnDateValidationError.get());
+                result.addError(fieldError); // エラーをBindingResultに追加する
+                throw new Exception(returnDateValidationError.get());  // バリデーションエラーがある場合は例外をスローする     
+            }
 
              // 登録処理
              this.rentalManageService.save(rentalManageDto);
@@ -150,6 +159,16 @@ public class RentalManageController {
                 throw new Exception("Validation error.");
             }
 
+
+        //日付妥当性チェック
+        Optional<String> returnDateValidationError = rentalManageDto.validateReturnDate();
+        if (returnDateValidationError.isPresent()) {
+            FieldError fieldError = new FieldError("rentalManageDto", "expectedReturnOn", returnDateValidationError.get());
+            result.addError(fieldError); // エラーをBindingResultに追加する
+            throw new Exception(returnDateValidationError.get());  // バリデーションエラーがある場合は例外をスローする              
+        }
+
+
         // 前の貸出ステータスを取得
         RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id)); 
         Integer previousRentalStetas = rentalManage.getStatus();
@@ -158,9 +177,9 @@ public class RentalManageController {
         Optional<String> validationError = rentalManageDto.isValidRentalStatus(previousRentalStetas);
         if (validationError.isPresent()) {
             // バリデーションエラーがある場合、特定のフィールドに関連付けられたエラーメッセージを作成する
-        FieldError fieldError = new FieldError("rentalManageDto", "status", validationError.get());
-        result.addError(fieldError); // エラーをBindingResultに追加する
-        throw new Exception(validationError.get());  // バリデーションエラーがある場合は例外をスローする              
+            FieldError fieldError = new FieldError("rentalManageDto", "status", validationError.get());
+            result.addError(fieldError); // エラーをBindingResultに追加する
+            throw new Exception(validationError.get());  // バリデーションエラーがある場合は例外をスローする              
         }
            
 

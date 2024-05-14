@@ -97,6 +97,9 @@ public class RentalManageService {
     public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
         try {
             RentalManage rentalManage = findById(Long.valueOf(id));  //DBに登録されているデータを持ってきている
+            if (rentalManage == null){
+                throw new Exception("Id not found.");
+            }
 
             Account account = rentalManage.getAccount();
             if (account == null) {

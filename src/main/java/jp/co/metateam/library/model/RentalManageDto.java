@@ -56,12 +56,19 @@ public class RentalManageDto {
 
 
     
+    public Optional<String> validateReturnDate() {
+        if (this.expectedRentalOn != null && this.expectedReturnOn != null) {
+            if (this.expectedReturnOn.before(this.expectedRentalOn)) {
+                return Optional.of("返却予定日は貸出予定日より後の日付を入力してください");
+            }
+        }
+        return Optional.empty();
+    }
+
+    
 
     public Optional<String> isValidRentalStatus(Integer previousRentalStetas) {  
 
-        
-
-                
         if (previousRentalStetas == RentalStatus.RENT_WAIT.getValue() && this.status != previousRentalStetas) {
             String currentStatusText = RentalStatus.getText(this.status);
             // 貸出ステータスが返却済みになっている場合
