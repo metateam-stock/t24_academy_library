@@ -6,8 +6,12 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 
+import io.micrometer.common.util.StringUtils;
 import jp.co.metateam.library.model.Account;
+import jp.co.metateam.library.model.BookMst;
+import jp.co.metateam.library.model.BookMstDto;
 import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.RentalManageDto;
 import jp.co.metateam.library.model.Stock;
@@ -40,12 +44,13 @@ public class RentalManageService {
 
         return rentalManageList;
     }
+    
 
     @Transactional
     public RentalManage findById(Long id) {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
-
+    
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {
         try {
@@ -60,7 +65,7 @@ public class RentalManageService {
             }
 
             RentalManage rentalManage = new RentalManage();
-            rentalManage = setRentalStatusDate(rentalManage, rentalManageDto.getStatus());
+            rentalManage=setRentalStatusDate(rentalManage,rentalManageDto.getStatus());
 
             rentalManage.setAccount(account);
             rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
@@ -74,6 +79,46 @@ public class RentalManageService {
             throw e;
         }
     }
+ 
+    @Transactional 
+    public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
+      
+        
+        try {
+            
+            RentalManage rentalManage = findById(id);
+            if (rentalManage == null) {
+                throw new Exception("RentalManage record not found.");
+            }
+            Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
+            if (account == null) {
+                throw new Exception("Account record not found.");
+            }
+            Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);
+            if (stock == null) {
+                throw new Exception("Stock record not found.");
+            }
+
+           
+            rentalManage=setRentalStatusDate(rentalManage,rentalManageDto.getStatus());
+
+            rentalManage.setAccount(account);
+            rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
+            rentalManage.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
+            rentalManage.setStatus(rentalManageDto.getStatus());
+            rentalManage.setStock(stock);
+            //rentalManage.getAccount().setEmployeeId(rentalManageDto.getAccount().getEmployeeId());
+            // rentalManage.getStock().setId(rentalManageDto.getStock().getId());
+
+
+            // データベースへの保存
+            this.rentalManageRepository.save(rentalManage);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+     
 
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());

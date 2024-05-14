@@ -1,6 +1,10 @@
 package jp.co.metateam.library.controller;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 
@@ -9,15 +13,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.validation.FieldError;
 
 import jp.co.metateam.library.service.AccountService;
 import jp.co.metateam.library.service.BookMstService;
-
 import jp.co.metateam.library.service.RentalManageService;
 import jp.co.metateam.library.service.StockService;
 import jakarta.validation.Valid;
@@ -84,7 +89,7 @@ public class RentalManageController {
      
       @GetMapping("/rental/add")
         public String add(Model model) {
-            List<Stock> stockList = this.stockService.findAll();
+            List<Stock> stockList = this.stockService.findStockAvailableAll();
             List<Account> accounts = this.accountService.findAll();
            
 
@@ -119,9 +124,104 @@ public class RentalManageController {
     
                 return "redirect:/rental/add";
             }
+        }
+   
+    @GetMapping("/rental/{id}/edit")
+    public String edit(@PathVariable("id") Long id, Model model) {
+        List<Stock> stockList = this.stockService.findStockAvailableAll();
+        List<Account> accounts = this.accountService.findAll();
+       
 
-        }      
+
+        model.addAttribute("accounts", accounts);
+        model.addAttribute("stockList", stockList);
+        model.addAttribute("rentalStatus", RentalStatus.values());   
+
+        if (!model.containsAttribute("rentalManageDto")) {
+            RentalManageDto rentalManageDto = new RentalManageDto();
+            RentalManage rentalManage = this.rentalManageService.findById(id);
+            rentalManageDto.setId(rentalManage.getId());
+            rentalManageDto.setAccount(rentalManage.getAccount());
+            rentalManageDto.setExpectedRentalOn(rentalManage.getExpectedRentalOn());
+            rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
+            rentalManageDto.setStock(rentalManage.getStock());
+            rentalManageDto.setStatus(rentalManage.getStatus());
+            rentalManageDto.setStockId(rentalManage.getStock().getId());
+            rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
+
+            model.addAttribute("rentalManageDto", rentalManageDto);
+        }
+
+        return "rental/edit";
+    }
+
+    @PostMapping("/rental/{id}/edit")
+    public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
+
+        try {
+
+            if (result.hasErrors()) {
+                throw new Exception("Validation error.");
+            }
+
+            RentalManage rentalManage = this.rentalManageService.findById(id);
+            int status = rentalManage.getStatus();
+            int newStatus = rentalManageDto.getStatus();
+            Date eRentaledAt = rentalManageDto.getExpectedRentalOn();
+            Date eReturnedAt = rentalManageDto.getExpectedReturnOn();
+            Date ldt = new Date();
+            // LocalDateTime eRentaledidt = LocalDateTime.ofInstant(eRentaledAt.toInstant(), ZoneId.systemDefault());
+            
+            // LocalDateTime eReturnedidt = LocalDateTime.ofInstant(eReturnedAt.toInstant(), ZoneId.systemDefault());
+
+            if (newStatus == 1 && ldt.before(eRentaledAt)){
+                // フィールドのエラーを表し、Formクラス名，フィールド名，エラーメッセージを渡す。
+                // getObjectNameではフォームクラス名が取得できる。
+                FieldError fieldError = new FieldError("rentalManageDto", "status", "貸出中は登録された貸出予定日以降の日付では選択できません");
+                // エラーを追加する。
+                result.addError(fieldError);
+                throw new Exception("Validation error.");
+
+
+        }else if (newStatus == 2 && ldt.before(eReturnedAt)){
+           // フィールドのエラーを表し、Formクラス名，フィールド名，エラーメッセージを渡す。
+                // getObjectNameではフォームクラス名が取得できる。
+                FieldError fieldError = new FieldError("rentalManageDto", "status", "返却済みは登録された返却予定日以降の日付では選択できません");
+                // エラーを追加する。
+                result.addError(fieldError);
+                throw new Exception("Validation error.");
+
+        }else  if ((status == 0 &&  (newStatus == 1 ||newStatus == 3 ))||status == 1 && newStatus == 2 || status == newStatus){
+                this.rentalManageService.update(id,rentalManageDto);
+                return "redirect:/rental/index";
+            }else {
+                FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスからの変更はできません");
+                result.addError(fieldError);
+                throw new  Exception("Validation error");
+            }
+          
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        
+            RentalManage rentalManage = this.rentalManageService.findById(id);
+            rentalManageDto.setId(rentalManage.getId());
+            rentalManageDto.setAccount(rentalManage.getAccount());
+            rentalManageDto.setStock(rentalManage.getStock());
+            rentalManageDto.setStatus(rentalManage.getStatus());
+            ra.addFlashAttribute("rentalManageDto", rentalManageDto);
+            ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
+
+           
+            // return "redirect:/rental/"+id+"/edit";
+           return String.format("redirect:/rental/%s/edit", id);
+        //    return "rental/edit";
+        }
+    }
+}
+
+
+   
        
         
-    }
+ 
 

@@ -119,16 +119,21 @@ public class StockController {
                 throw new Exception("Validation error.");
             }
             // 登録処理
-            stockService.update(id, stockDto);
+            this.stockService.update(id, stockDto);
 
             return "stock/index";
         } catch (Exception e) {
             log.error(e.getMessage());
+            Stock stock = this.stockService.findById(id);
+            stockDto.setId(stock.getId());
+            stockDto.setStatus(stock.getStatus());
+            stockDto.setBookMst(stock.getBookMst());
 
             ra.addFlashAttribute("stockDto", stockDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.stockDto", result);
 
-            return "redirect:/stock/edit";
+           return String.format("redirect:/stock/%s/edit", id);
+          
         }
     }
 
