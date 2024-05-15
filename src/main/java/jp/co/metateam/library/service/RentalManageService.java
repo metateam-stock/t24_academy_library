@@ -110,6 +110,7 @@ public class RentalManageService {
             if (stock == null) {
                 throw new Exception("Stock record not found.");
             }
+            rentalManage = setRentalStatusDate(rentalManage, rentalManageDto.getStatus());
 
             rentalManage.setAccount(account);
             rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
