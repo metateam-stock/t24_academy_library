@@ -119,92 +119,92 @@ import org.springframework.validation.FieldError;
         List <RentalManage> rentalManageList = this.rentalManageService.findAll();
         List <Account> accountList = this.accountService.findAll();
         List <Stock> stockList = this.stockService.findAll();
-   
+
        model.addAttribute("rentalStatus", RentalStatus.values());
        model.addAttribute("accounts", accountList);
        model.addAttribute("stockList", stockList);
-   
+
         if (!model.containsAttribute("rentalManageDto")) {
             RentalManageDto rentalManageDto = new RentalManageDto();
             RentalManage rentalManage = this.rentalManageService.findById(id);
- 
+
             rentalManageDto.setId(rentalManage.getId());
             rentalManageDto.setAccount(rentalManage.getAccount());
             rentalManageDto.setExpectedRentalOn(rentalManage.getExpectedRentalOn());
             rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
             rentalManageDto.setStock(rentalManage.getStock());
             rentalManageDto.setStatus(rentalManage.getStatus());
- 
- 
+
+
             model.addAttribute("rentalManageDto", rentalManageDto );
         }
- 
+
         return "rental/edit";
     }
- 
- 
- 
-    @PostMapping("/rental/{id}/edit")
-    public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
-        try {
-            if (result.hasErrors()) {
-                throw new Exception("Validation error.");
-            }
-    
-            RentalManage rentalManage = this.rentalManageService.findById(id);
-            int status = rentalManage.getStatus();
-            int newStatus = rentalManageDto.getStatus();
-            LocalDateTime ldt = LocalDateTime.now();
-            Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
-            Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
-    
-            LocalDateTime expectedRentalOnLdt = Instant.ofEpochMilli(expectedRentalOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-            LocalDateTime expectedReturnOnLdt = Instant.ofEpochMilli(expectedReturnOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-    
-            if (newStatus == 1 && ldt.isBefore(expectedRentalOnLdt)) {
-                FieldError fieldError = new FieldError("rentalManageDto", "status", "貸出予定日が未来のためこのステータスは選択できません");
-                result.addError(fieldError);
-                throw new Exception("Validation error.");
-    
-            } else if (newStatus == 2 && ldt.isBefore(expectedReturnOnLdt)) {
-                FieldError fieldError = new FieldError("rentalManageDto", "status", "返却予定日が未来のためこのステータスは選択できません");
-                    result.addError(fieldError);
-                    throw new Exception("Validation error.");
-    
-            } else if ((status == newStatus) || (status == 0 && (newStatus == 1 || newStatus == 3)) || (status == 1 && newStatus == 2)) {
-                this.rentalManageService.update(id, rentalManageDto);
-    
-            } else {
-                FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスは選択できません");
-                result.addError(fieldError);
+
+
+
+@PostMapping("/rental/{id}/edit")
+public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
+    try {
+        if (result.hasErrors()) {
             throw new Exception("Validation error.");
-            }
-    
-            return "redirect:/rental/index";
-    
-        } catch (Exception e) {
-            log.error(e.getMessage());
-    
-             RentalManage rentalManage = this.rentalManageService.findById(id);
-    
-             rentalManageDto.setId(rentalManage.getId());
-             rentalManageDto.setAccount(rentalManage.getAccount());
-             rentalManageDto.setStock(rentalManage.getStock());
-             rentalManageDto.setStatus(rentalManage.getStatus());
-    
-    
-            ra.addFlashAttribute("rentalManageDto", rentalManageDto);
-            ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
-    
-           return String.format("redirect:/rental/%s/edit", id);
         }
+
+        RentalManage rentalManage = this.rentalManageService.findById(id);
+        int status = rentalManage.getStatus();
+        int newStatus = rentalManageDto.getStatus();
+        LocalDateTime ldt = LocalDateTime.now();
+        Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
+        Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
+
+        LocalDateTime expectedRentalOnLdt = Instant.ofEpochMilli(expectedRentalOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime expectedReturnOnLdt = Instant.ofEpochMilli(expectedReturnOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        if (newStatus == 1 && ldt.isBefore(expectedRentalOnLdt)) {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "貸出予定日が未来のためこのステータスは選択できません");
+            result.addError(fieldError);
+            throw new Exception("Validation error.");
+
+        } else if (newStatus == 2 && ldt.isBefore(expectedReturnOnLdt)) {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "返却予定日が未来のためこのステータスは選択できません");
+                result.addError(fieldError);
+                throw new Exception("Validation error.");
+
+        } else if ((status == newStatus) || (status == 0 && (newStatus == 1 || newStatus == 3)) || (status == 1 && newStatus == 2)) {
+            this.rentalManageService.update(id, rentalManageDto);
+
+        } else {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスは選択できません");
+            result.addError(fieldError);
+        throw new Exception("Validation error.");
+        }
+
+        return "redirect:/rental/index";
+
+    } catch (Exception e) {
+        log.error(e.getMessage());
+
+         RentalManage rentalManage = this.rentalManageService.findById(id);
+
+         rentalManageDto.setId(rentalManage.getId());
+         rentalManageDto.setAccount(rentalManage.getAccount());
+         rentalManageDto.setStock(rentalManage.getStock());
+         rentalManageDto.setStatus(rentalManage.getStatus());
+
+
+        ra.addFlashAttribute("rentalManageDto", rentalManageDto);
+        ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
+
+       return String.format("redirect:/rental/%s/edit", id);
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    }
+}
+
+
+
+
+
+
+
+
+}
