@@ -108,7 +108,7 @@ public class RentalManageController {
         model.addAttribute("rentalStatus", RentalStatus.values());
         model.addAttribute("accounts", accountList);
         model.addAttribute("stockList", stockList);
-        //変更ボタン後の処理
+        
         if (!model.containsAttribute("rentalManageDto")) {
             model.addAttribute("rentalManageDto", new RentalManageDto());
 
@@ -116,11 +116,9 @@ public class RentalManageController {
         RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));
 
         rentalManageDto.setId(rentalManage.getId());
-        rentalManageDto.setAccount(rentalManage.getAccount());
         rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
         rentalManageDto.setExpectedRentalOn(rentalManage.getExpectedRentalOn());
         rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
-        rentalManageDto.setStock(rentalManage.getStock());
         rentalManageDto.setStockId(rentalManage.getStock().getId());
         rentalManageDto.setStatus(rentalManage.getStatus());
 
@@ -135,11 +133,11 @@ public class RentalManageController {
 
             RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));
             String validerror = rentalManageDto.isValidStatus(rentalManage.getStatus());
-
+            //ステータスチェック
             if(validerror != null){
                 result.addError(new FieldError("rentalManageDto", "status", validerror));
             }
-
+            //入力チェック
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
@@ -154,11 +152,12 @@ public class RentalManageController {
             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
             
             List<Account> accountList = this.accountService.findAll();
-            List<Stock> stockList = this.stockService.findStockAvailableAll();
+            List<Stock> stockList = this.stockService.findAll();
 
             model.addAttribute("rentalStatus", RentalStatus.values());
             model.addAttribute("accounts", accountList);
             model.addAttribute("stockList", stockList);
+           // model.addAttribute("stockId",this.rentalManageService.findById(Long.valueOf(id)).getStock().getId());
 
             return "rental/edit";
         }
