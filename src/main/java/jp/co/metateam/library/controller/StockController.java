@@ -124,7 +124,6 @@ public class StockController {
             return "stock/index";
         } catch (Exception e) {
             log.error(e.getMessage());
-
             ra.addFlashAttribute("stockDto", stockDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.stockDto", result);
 
