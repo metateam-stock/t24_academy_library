@@ -134,6 +134,9 @@ import org.springframework.validation.FieldError;
             rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
             rentalManageDto.setStock(rentalManage.getStock());
             rentalManageDto.setStatus(rentalManage.getStatus());
+            rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
+            rentalManageDto.setStockId(rentalManage.getStock().getId());
+
 
 
             model.addAttribute("rentalManageDto", rentalManageDto );
