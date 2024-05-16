@@ -1,13 +1,16 @@
 package jp.co.metateam.library.model;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jp.co.metateam.library.constants.Constants;
 import jp.co.metateam.library.values.RentalStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,5 +74,5 @@ public class RentalManageDto {
          return "貸出ステータスは「キャンセル」から「貸出済み」に変更はできません";
 
         } return null;
-  }   
- }
+  }      
+}
