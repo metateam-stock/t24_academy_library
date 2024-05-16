@@ -20,9 +20,11 @@ import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.RentalManageDto;
 import jp.co.metateam.library.values.RentalStatus;
 import jp.co.metateam.library.model.Stock;
+
 import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.BookMstDto;
+import jp.co.metateam.library.model.Account;
 
 
 /**
@@ -144,12 +146,22 @@ public class RentalManageController {
             // 登録処理
             rentalManageService.update(Long.valueOf(id), rentalManageDto);
 
+    @PostMapping("/rental/add")
+    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
+        try {
+            if (result.hasErrors()) {
+                throw new Exception("Validation error.");
+            }
+            // 登録処理
+            this.rentalManageService.save(rentalManageDto);
+
             return "redirect:/rental/index";
         } catch (Exception e) {
             log.error(e.getMessage());
 
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
+
             
             List<Account> accountList = this.accountService.findAll();
             List<Stock> stockList = this.stockService.findAll();
@@ -160,6 +172,9 @@ public class RentalManageController {
            // model.addAttribute("stockId",this.rentalManageService.findById(Long.valueOf(id)).getStock().getId());
 
             return "rental/edit";
+
+
+            return "redirect:/rental/add";
         }
     }
 }
