@@ -1,17 +1,19 @@
 package jp.co.metateam.library.controller;
- 
+
 import java.util.List;
- 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
- 
+
 import jakarta.validation.Valid;
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.RentalManage;
@@ -31,15 +33,14 @@ import lombok.extern.log4j.Log4j2;
 public class RentalManageController {
 
     private final AccountService accountService;
-    private final RentalManageService rentalManageService;
+    private final RentalManageService rentalManageService; // この時点では定義しただけで、中身は空っぽ
     private final StockService stockService;
 
     @Autowired
-    public RentalManageController(
-        AccountService accountService, 
-        RentalManageService rentalManageService, 
-        StockService stockService
-    ) {
+    public RentalManageController( // コンストラクタ
+            AccountService accountService,
+            RentalManageService rentalManageService,
+            StockService stockService) {
         this.accountService = accountService;
         this.rentalManageService = rentalManageService;
         this.stockService = stockService;
@@ -47,6 +48,7 @@ public class RentalManageController {
 
     /**
      * 貸出一覧画面初期表示
+     * 
      * @param model
      * @return
      */
@@ -62,13 +64,13 @@ public class RentalManageController {
 
     @GetMapping("/rental/add")
     public String add(Model model) {
-        
+
         List<Account> accountList = this.accountService.findAll();
         List<Stock> stockList = this.stockService.findStockAvailableAll();
 
-        model.addAttribute("accounts",accountList);
-        model.addAttribute("stockList",stockList);
-        model.addAttribute("rentalStatus",RentalStatus.values());
+        model.addAttribute("accounts", accountList);
+        model.addAttribute("stockList", stockList);
+        model.addAttribute("rentalStatus", RentalStatus.values());
 
         if (!model.containsAttribute("rentalManageDto")) {
             model.addAttribute("rentalManageDto", new RentalManageDto());
@@ -76,9 +78,10 @@ public class RentalManageController {
 
         return "rental/add";
     }
-    
+
     @PostMapping("/rental/add")
-    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
+    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result,
+            RedirectAttributes ra) {
         try {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
@@ -94,6 +97,90 @@ public class RentalManageController {
             ra.addFlashAttribute("org.springframework.validation.BindingResult.stockDto", result);
 
             return "redirect:/rental/add";
+        }
+    }
+
+    @GetMapping("/rental/{id}/edit")
+    public String edit(@PathVariable("id") String id, Model model) {
+
+        List<Account> accountList = this.accountService.findAll();
+        List<Stock> stockList = this.stockService.findAll();
+
+        model.addAttribute("accounts", accountList);
+        model.addAttribute("stockList", stockList);
+        model.addAttribute("rentalStatus", RentalStatus.values());
+
+        if (!model.containsAttribute("rentalManageDto")) {
+            // rentalManageを変数としたクラスを作成する
+            RentalManage rentalManage = this.rentalManageService.findById(Long.parseLong(id));
+            RentalManageDto rentalManageDto = new RentalManageDto();
+            rentalManageDto.setId(rentalManage.getId());
+            rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
+            rentalManageDto.setExpectedRentalOn(rentalManage.getExpectedRentalOn());
+            rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
+            rentalManageDto.setStockId(rentalManage.getStock().getId());
+            rentalManageDto.setStatus(rentalManage.getStatus());
+            model.addAttribute("rentalManageDto", rentalManageDto);
+            // DTOという箱に必要なデータを入れて、それをHTML側に送る
+        }
+
+        return "rental/edit";
+    }
+
+    @PostMapping("/rental/{id}/edit")
+    public String update(@PathVariable("id") String id, @Valid @ModelAttribute RentalManageDto rentalManageDto,
+            BindingResult result, RedirectAttributes ra) {
+        try {
+            if (result.hasErrors()) {
+                throw new Exception("Validation error.");
+            }
+
+            // バリデーションチェック → RentalManageDtoクラスの中に記入していく
+            Long longId = Long.parseLong(id);
+            RentalManage rentalManage = this.rentalManageService.findById(longId); // rentalManageは35行目辺りで定義済み
+            Integer preRentalStatus = rentalManage.getStatus();
+            Integer newRentalStatus = rentalManageDto.getStatus();
+            // 上のrentalManageDtoには、編集時にHTML側から送られてくるデータが入っている
+
+            Optional<String> errorMessage = rentalManageDto.validateStatus(preRentalStatus, newRentalStatus);
+
+            if (errorMessage.isPresent()) { // isPresent()メソッド：値を持っていればtrue
+                result.addError(new FieldError("rentalManageDto", "status", errorMessage.get()));
+                throw new Exception(errorMessage.get());
+            }
+
+            // 日付妥当性チェック(返却予定日が貸出予定日より前の日付になっていないかどうか)
+            Optional<String> errorMessageDate = rentalManageDto.validateDate();
+
+            if (errorMessageDate.isPresent()) { // isPresent()メソッド：値を持っていればtrue
+                result.addError(new FieldError("rentalManageDto", "expectedReturnOn", errorMessageDate.get()));
+                throw new Exception(errorMessageDate.get());
+            }
+
+            // 【追加実装】 日付チェック(0→1の貸出予定日の整合性) ⇒メソッドはRentalManageDtoクラスにある
+            // Optional<String> errorMessageExpectedRentalOn =
+            // rentalManageDto.validateExpectedRentalOn();
+
+            // if (errorMessageExpectedRentalOn.isPresent()) { //
+            // isPresent()メソッド：値を持っていればtrue
+            // result.addError(
+            // new FieldError("rentalManageDto", "expectedRentalOn",
+            // errorMessageExpectedRentalOn.get()));
+            // throw new Exception(errorMessageExpectedRentalOn.get());//
+            // get()以外の選択肢があてはまるか調べてみる
+            // }
+
+            // 登録処理
+            this.rentalManageService.update(Long.parseLong(id), rentalManageDto);
+
+            return "redirect:/rental/index";
+        } catch (Exception e) {
+            log.error(e.getMessage());
+
+            ra.addFlashAttribute("rentalManageDto", rentalManageDto);
+            ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
+
+            return "redirect:/rental/" + id + "/edit";
         }
     }
 }

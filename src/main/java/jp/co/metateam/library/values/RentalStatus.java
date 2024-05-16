@@ -6,11 +6,14 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum RentalStatus implements Values {
-    RENT_WAIT(0, "貸出待ち")
-    , RENTAlING(1, "貸出中")
-    , RETURNED(2, "返却済み")
-    , CANCELED(3, "キャンセル");
+    RENT_WAIT(0, "貸出待ち"), RENTAlING(1, "貸出中"), RETURNED(2, "返却済み"), CANCELED(3, "キャンセル");
 
     private final Integer value;
-    private final String text;  
-}
+    private final String text;
+
+    public static String ValidationStatus(Integer value) {
+
+        return "error";
+    }
+} // integerをString型に変換するメソッドを書く必要があるかも？？
+  // String text = String
