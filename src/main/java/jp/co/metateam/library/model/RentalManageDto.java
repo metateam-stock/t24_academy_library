@@ -1,7 +1,10 @@
 package jp.co.metateam.library.model;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.Calendar;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -49,7 +52,16 @@ public class RentalManageDto {
 
     private Account account;  
 
-public Optional<String> isStatusError(Integer oldStatus, Integer status) {
+    public void dateCheck() throws Exception {
+        LocalDate expectedRentalOnLocalDate = this.expectedRentalOn.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate expectedReturnOnLocalDate = this.expectedReturnOn.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+ 
+        if (expectedRentalOnLocalDate.isAfter(expectedReturnOnLocalDate)) {
+            throw new Exception("返却予定日は貸出予定日よりも後に設定してください");
+        }
+    }    
+
+    public Optional<String> isStatusError(Integer oldStatus, Integer status) {
         if (oldStatus == RentalStatus.RENT_WAIT.getValue()&& status == RentalStatus.RETURNED.getValue()) {
             return Optional.of("貸出待ちから返却済みは選択できません");
         } else if (oldStatus == RentalStatus.RENTAlING.getValue()&& status == RentalStatus.RENT_WAIT.getValue()) {
@@ -72,4 +84,23 @@ public Optional<String> isStatusError(Integer oldStatus, Integer status) {
             return Optional.empty(); // 遷移が正しい場合は空のOptionalを返す
         }
     }
+
+    // public Optional<String> checkcalender(Integer oldStatus, Integer status, Date expectedReturnOn) {
+
+
+    //         Calendar cal = Calendar.getInstance();
+    //         cal.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+    //         Date currentDate = cal.getTime();
+
+    //     if (oldStatus == RentalStatus.RENT_WAIT.getValue() && status == RentalStatus.RENTAlING.getValue()){
+    //         if(!expectedReturnOn.equals(currentDate)){
+
+    //             return Optional.of("貸出予定日のみ貸出中を選択できます");
+        
+    //         }else{
+    //             return Optional.empty(); // 正しい場合は空のOptionalを返す
+    //         }
+    //     }
+    //     return Optional.empty();
+    // }
 }

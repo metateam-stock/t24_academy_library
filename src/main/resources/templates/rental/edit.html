@@ -40,6 +40,9 @@
                             placeholder="貸出予定日を入力" required>
                         <div class="error_msg" th:if="${#fields.hasErrors('expectedRentalOn')}"
                             th:errors="*{expectedRentalOn}"></div>
+                            <div th:if="${error1}" class="alert alert-danger" role="alert">
+                                <p th:text="${error1}"></p>
+                            </div>
                     </div>
                     <div class="mb30">
                         <label class="input_title" for="expectedReturnOn">返却予定日<span

@@ -150,7 +150,9 @@ public class RentalManageController {
                 ra.addFlashAttribute("error", statusError.get());
                 return "redirect:/rental/"+ id +"/edit";
             }
-           
+
+            rentalManageDto.dateCheck();
+
             // 変更処理
             rentalManageService.update(id, rentalManageDto);
  
@@ -168,7 +170,8 @@ public class RentalManageController {
  
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
- 
+            ra.addFlashAttribute("error1", e.getMessage());
+            
             return "redirect:/rental/"+ id +"/edit";
         }
     }
