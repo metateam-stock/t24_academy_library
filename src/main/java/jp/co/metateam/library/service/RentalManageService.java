@@ -19,6 +19,16 @@ import jp.co.metateam.library.repository.AccountRepository;
 import jp.co.metateam.library.repository.RentalManageRepository;
 import jp.co.metateam.library.repository.StockRepository;
 import jp.co.metateam.library.values.RentalStatus;
+import jp.co.metateam.library.values.StockStatus;
+
+import java.util.Optional;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 
 @Service
 public class RentalManageService {
@@ -125,5 +135,17 @@ public class RentalManageService {
         }
     }
 
-    
+
+    //貸出登録での貸出可否チェック用のリスト取得
+    public List<RentalManage> findByStockId(String StockId){        //指定された在庫管理番号に関連付けられたすべての貸出情報を取得
+        List<RentalManage> rentalAvailable =this.rentalManageRepository.findByStockId(StockId);      //与えられた在庫管理番号に基づいて貸出情報を検索する
+        return rentalAvailable;        
+    }
+
+    //貸出編集の貸出可否チェック用のリスト取得
+    public List<RentalManage> findByStockIdAndRentalId(String StockId, Long retalId){       //指定されたの在庫管理番号と貸出管理番号に関連付けられたすべての貸出情報を取得
+        List<RentalManage> rentalAvailable =this.rentalManageRepository.findByStockIdAndRentalId(StockId,retalId);      //与えられた在庫管理番号と貸出管理番号の両方を使用して貸出情報を検索する
+        return rentalAvailable;
+    }
+
 }
