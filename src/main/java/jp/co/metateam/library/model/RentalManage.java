@@ -95,7 +95,7 @@ public class RentalManage {
     public Account getAccount() {
         return account;
     }
-    
+
     /** Setters */
 
     public void setId(Long id) {
