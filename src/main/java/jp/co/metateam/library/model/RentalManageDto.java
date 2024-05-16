@@ -7,8 +7,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jp.co.metateam.library.values.RentalStatus;
 import lombok.Getter;
 import lombok.Setter;
+
+
 
 /**
  * 貸出管理DTO
@@ -45,4 +48,5 @@ public class RentalManageDto {
     private Stock stock;
 
     private Account account;
+
 }
