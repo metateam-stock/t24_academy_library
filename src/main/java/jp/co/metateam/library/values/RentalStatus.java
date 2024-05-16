@@ -11,9 +11,4 @@ public enum RentalStatus implements Values {
     private final Integer value;
     private final String text;
 
-    public static String ValidationStatus(Integer value) {
-
-        return "error";
-    }
-} // integerをString型に変換するメソッドを書く必要があるかも？？
-  // String text = String
+}
