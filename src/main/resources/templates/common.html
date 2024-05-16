@@ -9,7 +9,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <!-- (3)タイトルのフォーマット -->
     <title th:text="${title}+' | MTLibrary'">各ページタイトル | MTLibrary</title>
-
+ 
     <!-- (4)各View固有で読み込むもの -->
     <th:block th:replace="${links} ?: _" />
     <th:block th:replace="${scripts} ?: _" />
@@ -22,7 +22,7 @@
                 <span>管理者</span><img class="under_arrow" th:src="@{/images/icons/under_arrow.png}"/>
             </label>
         </div>
-        
+       
         <div class="menu_container">
             <input type="checkbox" id="menu1" class="on-off" />
             <div class="menu">
@@ -33,11 +33,11 @@
             </div>
         </div>
     </div>
-
+ 
     <div class="sidebar" th:fragment="common_sidebar">
         <div class="app_name">MT書籍管理</div>
     </div>
-
+ 
     <div class="sidebar" th:fragment="main_sidebar">
         <div class="app_name">MT書籍管理</div>
         <div id="sidebar_menu">
@@ -70,7 +70,7 @@
             </details>
         </div>
     </div>
-
+    
     <footer th:fragment="footer">
         <div>
             Copyright 2024 ＭＥＴＡＴＥＡＭ株式会社
