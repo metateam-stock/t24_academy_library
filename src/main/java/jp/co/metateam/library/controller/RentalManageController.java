@@ -139,10 +139,10 @@ public class RentalManageController {
             Long longId = Long.parseLong(id);
             RentalManage rentalManage = this.rentalManageService.findById(longId); // rentalManageは35行目辺りで定義済み
             Integer preRentalStatus = rentalManage.getStatus();
-            Integer newRentalStatus = rentalManageDto.getStatus();
+            // Integer newRentalStatus = rentalManageDto.getStatus(); ←新しく定義する必要ない
             // 上のrentalManageDtoには、編集時にHTML側から送られてくるデータが入っている
 
-            Optional<String> errorMessage = rentalManageDto.validateStatus(preRentalStatus, newRentalStatus);
+            Optional<String> errorMessage = rentalManageDto.validateStatus(preRentalStatus);
 
             if (errorMessage.isPresent()) { // isPresent()メソッド：値を持っていればtrue
                 result.addError(new FieldError("rentalManageDto", "status", errorMessage.get()));
@@ -170,7 +170,7 @@ public class RentalManageController {
             // get()以外の選択肢があてはまるか調べてみる
             // }
 
-            // 登録処理
+            // 更新処理
             this.rentalManageService.update(Long.parseLong(id), rentalManageDto);
 
             return "redirect:/rental/index";

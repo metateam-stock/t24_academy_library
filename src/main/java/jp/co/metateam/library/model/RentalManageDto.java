@@ -51,20 +51,20 @@ public class RentalManageDto {
     private Account account;
 
     // バリデーションチェック用のメソッドを記載していく→RentalManageControllerクラスから呼び出される
-    public Optional<String> validateStatus(Integer preRentalStatus, Integer newRentalStatus) {
+    public Optional<String> validateStatus(Integer preRentalStatus) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-        if (preRentalStatus == RentalStatus.RENT_WAIT.getValue() && preRentalStatus != newRentalStatus) { // 0から変更してるかどうか
-            if (newRentalStatus == RentalStatus.RETURNED.getValue()) { // 2に変更してるかどうか
+        if (preRentalStatus == RentalStatus.RENT_WAIT.getValue() && preRentalStatus != this.status) { // 0から変更してるかどうか
+            if (this.status == RentalStatus.RETURNED.getValue()) { // 2に変更してるかどうか
                 return Optional.of("「貸出待ち」から「返却済み」には変更できません"); // エラーメッセージの設定
             }
-        } else if (preRentalStatus == RentalStatus.RENTAlING.getValue() && preRentalStatus != newRentalStatus) {// 1から変更してるかどうか
-            if (newRentalStatus != RentalStatus.RETURNED.getValue()) {// 変更先が2以外かどうか
+        } else if (preRentalStatus == RentalStatus.RENTAlING.getValue() && preRentalStatus != this.status) {// 1から変更してるかどうか
+            if (this.status != RentalStatus.RETURNED.getValue()) {// 変更先が2以外かどうか
                 return Optional.of("「貸出中」から「貸出待ち」または「キャンセル」には変更できません");// エラーメッセージの設定
             }
 
-        } else if (preRentalStatus == RentalStatus.RETURNED.getValue() && preRentalStatus != newRentalStatus ||
-                preRentalStatus == RentalStatus.CANCELED.getValue() && preRentalStatus != newRentalStatus) {// 2または3から変更してるかどうか
+        } else if ((preRentalStatus == RentalStatus.RETURNED.getValue() && preRentalStatus != this.status) ||
+                (preRentalStatus == RentalStatus.CANCELED.getValue() && preRentalStatus != this.status)) {// 2または3から変更してるかどうか
             return Optional.of("「返却済み」または「キャンセル」から貸出ステータスの変更はできません");// エラーメッセージの設定
             // 確認事項：詳細設計において、上のreturn文に該当する「エラーメッセージの設定」がない(詳細設計のミス？)
         }
