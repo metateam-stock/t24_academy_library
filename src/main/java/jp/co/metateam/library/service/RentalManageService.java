@@ -52,6 +52,18 @@ public class RentalManageService {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
 
+    //貸出登録の貸出可否チェック用のリスト取得
+    public List<RentalManage> findByStockIdAndStatusIn(String StockId){
+        List<RentalManage> rentalAvailable =this.rentalManageRepository.findByStockIdAndStatusIn(StockId);
+        return rentalAvailable;
+    }
+    
+    //貸出編集の貸出可否チェック用のリスト取得
+    public List<RentalManage> findByStockIdAndStatusIn(String StockId, Long retalId){
+        List<RentalManage> rentalAvailable =this.rentalManageRepository.findByStockIdAndStatusIn(StockId,retalId);
+        return rentalAvailable;
+    }
+
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {
         try {
@@ -129,6 +141,9 @@ public class RentalManageService {
         return rentalManage;
     }
 
+   
+}
+
     
 
-}
+
