@@ -80,19 +80,3 @@ public class RentalManageDto {
             return null; 
         }
     }
-
-    // public String rentalOnCheck() {
-    //     Date currentDate =new Date();
-    //     if (status == RentalStatus.RENTAlING.getValue() && expectedRentalOn.after(currentDate)){
-    //         return"未来の日付で貸出予定日に変更できません";
-    //     }
-    // }
-   
-    
-    // public String returnOnCheck() {
-    //     Date currentDate =new Date();
-    //     if (status == RentalStatus.RETURNED.getValue() && expectedReturnOn.after(currentDate)){
-    //         return"未来の日付で返却予定日に変更できません";
-    //     }
-    // }
-
