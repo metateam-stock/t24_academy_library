@@ -91,9 +91,9 @@ public class RentalManageDto {
                     break;                   
                 case 3:
                    if(newStatus == 0){
-                       return String.format("貸出ステータスは「キャンセル」から「貸出待ち」に変更できません");
+                       return String.format("貸出ステータスは「キャンセル」から「返却済み」に変更できません");
                     } else if(newStatus == 1){
-                       return String.format("貸出ステータスは「キャンセル」から「貸出中」に変更できません");
+                       return String.format("貸出ステータスは「キャンセル」から「返却済み」に変更できません");
                     } else if(newStatus == 2){
                        return String.format("貸出ステータスは「キャンセル」から「返却済み」に変更できません");
                     } 
