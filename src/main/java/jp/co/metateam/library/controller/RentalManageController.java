@@ -1,6 +1,7 @@
 package jp.co.metateam.library.controller;
 
 import java.security.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -92,11 +93,52 @@ public class RentalManageController {
 
 
     @PostMapping("/rental/add")
-    public String add(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
+    public String add(@Valid @ModelAttribute RentalManageDto rentalManageDto,  BindingResult result, RedirectAttributes ra, Model model) {
         try {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+
+            String id =rentalManageDto.getStockId();
+            Stock stock = this.stockService.findById(id);
+            int stockStatus = stock.getStatus();
+
+            //在庫ステータス利用可チェック
+            if(stockStatus == 1){
+                FieldError fieldError = new FieldError("rentalManageDto", "stockId", "現在この書籍は貸出できません");
+                result.addError(fieldError);
+                throw new Exception("StockStatus record not found.");
+            }
+
+            List<RentalManage> rentalManageList = rentalManageService.findAllByStatusIn(Arrays.asList(0, 1));
+            Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
+            Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
+    
+            if (rentalManageList == null) {
+                throw new Exception("RentalManageList record not found.");
+            }
+            
+            //日付重複チェック
+            for (RentalManage rentalManage : rentalManageList) {
+
+                if(id.equals(rentalManage.getStock().getId())){
+                    Date listRentalRentalOn = rentalManage.getExpectedRentalOn();
+                    Date listRentalReturnOn = rentalManage.getExpectedReturnOn();
+
+                        if ((expectedReturnOn.after(listRentalRentalOn)) && (listRentalReturnOn.after(expectedReturnOn))) {
+                            FieldError fieldError = new FieldError("rentalManageDto", "stockId", "返却予定日が重複しているため、この期間で貸出できません");
+                            result.addError(fieldError);
+                            throw new Exception("The rental is not possible.");
+
+                        } else if((expectedRentalOn.after(listRentalRentalOn)) && (listRentalReturnOn.after(expectedRentalOn))){
+                            FieldError fieldError = new FieldError("rentalManageDto", "stockId", "貸出予定日が重複しているため、この期間で貸出できません");
+                            result.addError(fieldError);
+                            throw new Exception("The rental is not possible.");
+                        }
+                 }
+                
+            }
+
             // 登録処理
             this.rentalManageService.save(rentalManageDto);
 
@@ -154,8 +196,8 @@ public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalM
             throw new Exception("Validation error.");
         }
 
-        RentalManage rentalManage = this.rentalManageService.findById(id);
-        int status = rentalManage.getStatus();
+        RentalManage valRentalManage = this.rentalManageService.findById(id);
+        int status = valRentalManage.getStatus();
         int newStatus = rentalManageDto.getStatus();
         LocalDateTime ldt = LocalDateTime.now();
         Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
@@ -163,7 +205,8 @@ public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalM
 
         LocalDateTime expectedRentalOnLdt = Instant.ofEpochMilli(expectedRentalOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime expectedReturnOnLdt = Instant.ofEpochMilli(expectedReturnOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-
+       
+        //貸出ステータスバリデーションチェック
         if (newStatus == 1 && ldt.isBefore(expectedRentalOnLdt)) {
             FieldError fieldError = new FieldError("rentalManageDto", "status", "貸出予定日が未来のためこのステータスは選択できません");
             result.addError(fieldError);
@@ -174,15 +217,82 @@ public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalM
                 result.addError(fieldError);
                 throw new Exception("Validation error.");
 
-        } else if ((status == newStatus) || (status == 0 && (newStatus == 1 || newStatus == 3)) || (status == 1 && newStatus == 2)) {
-            this.rentalManageService.update(id, rentalManageDto);
-       
-        } else {
+        } else if (status == 0 && newStatus == 2) {
             FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスは選択できません");
+            result.addError(fieldError);
+        throw new Exception("Validation error.");
+            
+        } else if (status == 1 && (newStatus == 0 || newStatus == 3)) {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスは選択できません");
+            result.addError(fieldError);
+        throw new Exception("Validation error.");
+
+        } else if (status == 2 && (newStatus == 0 || newStatus == 1 || newStatus == 3)) {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "返却済みからステータスの変更はできません");
+            result.addError(fieldError);
+        throw new Exception("Validation error.");
+
+        } else if (status == 3 && (newStatus == 0 || newStatus == 1 || newStatus == 2)) {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "キャンセルからステータスの変更はできません");
             result.addError(fieldError);
         throw new Exception("Validation error.");
         }
 
+
+
+
+
+
+
+
+
+        String stockId =rentalManageDto.getStockId();
+            Stock stock = this.stockService.findById(stockId);
+            int stockStatus = stock.getStatus();
+
+            //在庫ステータス利用可チェック
+            if(stockStatus == 1){
+                FieldError fieldError = new FieldError("rentalManageDto", "stockId", "現在この書籍は貸出できません");
+                result.addError(fieldError);
+                throw new Exception("StockStatus record not found.");
+            }
+
+            List<RentalManage> rentalManageList = rentalManageService.findAllByStatusIn(Arrays.asList(0, 1));
+            if (rentalManageList == null) {
+                throw new Exception("RentalManageList record not found.");
+            }
+            
+            //日付重複チェック
+            for (RentalManage rentalManage : rentalManageList) {
+                if(id == rentalManage.getId()){
+                
+                }else if(stockId.equals(rentalManage.getStock().getId())){
+                        Date listRentalRentalOn = rentalManage.getExpectedRentalOn();
+                        Date listRentalReturnOn = rentalManage.getExpectedReturnOn();
+
+                            if ((expectedReturnOn.before(listRentalRentalOn)) || (listRentalReturnOn.before(expectedRentalOn))) {
+
+                            } else {
+                                FieldError fieldError = new FieldError("rentalManageDto", "stockId", "この期間で貸出できません");
+                                result.addError(fieldError);
+                                throw new Exception("The rental is not possible.");
+                            }
+                }
+                
+            }
+
+
+
+
+
+
+
+
+
+
+
+        //変更処理        
+        this.rentalManageService.update(id, rentalManageDto);
         return "redirect:/rental/index";
 
     } catch (Exception e) {

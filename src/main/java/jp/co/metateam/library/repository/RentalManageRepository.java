@@ -13,4 +13,7 @@ public interface RentalManageRepository extends JpaRepository<RentalManage, Long
     List<RentalManage> findAll();
 
 	Optional<RentalManage> findById(Long id);
+
+    List<RentalManage> findAllByStatusIn(List<Integer> statuses);
+
 }
