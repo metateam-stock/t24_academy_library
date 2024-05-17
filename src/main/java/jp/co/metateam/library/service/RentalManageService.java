@@ -3,7 +3,6 @@ package jp.co.metateam.library.service;
 import java.sql.Timestamp;
 import java.util.List;
 
-import org.hibernate.loader.internal.LoadAccessContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +23,11 @@ public class RentalManageService {
     private final RentalManageRepository rentalManageRepository;
     private final StockRepository stockRepository;
 
-     @Autowired
+    @Autowired
     public RentalManageService(
-        AccountRepository accountRepository,
-        RentalManageRepository rentalManageRepository,
-        StockRepository stockRepository
+            AccountRepository accountRepository,
+            RentalManageRepository rentalManageRepository,
+            StockRepository stockRepository
     ) {
         this.accountRepository = accountRepository;
         this.rentalManageRepository = rentalManageRepository;
@@ -36,9 +35,8 @@ public class RentalManageService {
     }
 
     @Transactional
-    public List <RentalManage> findAll() {
-        List <RentalManage> rentalManageList = this.rentalManageRepository.findAll();
-
+    public List<RentalManage> findAll() {
+        List<RentalManage> rentalManageList = this.rentalManageRepository.findAll();
         return rentalManageList;
     }
 
@@ -47,7 +45,7 @@ public class RentalManageService {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
 
-    @Transactional 
+    @Transactional
     public void save(RentalManageDto rentalManageDto) throws Exception {
         try {
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
@@ -60,23 +58,22 @@ public class RentalManageService {
                 throw new Exception("Stock not found.");
             }
 
-            RentalManage rentalManage = new RentalManage();//インスタンス化
+            RentalManage rentalManage = new RentalManage();
             rentalManage = setRentalStatusDate(rentalManage, rentalManageDto.getStatus());
             rentalManage.setAccount(account);
             rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
             rentalManage.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
             rentalManage.setStatus(rentalManageDto.getStatus());
             rentalManage.setStock(stock);
-
             // データベースへの保存
             this.rentalManageRepository.save(rentalManage);
         } catch (Exception e) {
             throw e;
         }
     }
-//ここから
-    @Transactional 
-    public void update(long id,RentalManageDto rentalManageDto) throws Exception {
+
+    @Transactional
+    public void update(long id, RentalManageDto rentalManageDto) throws Exception {
         try {
             //既存レコード取得
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
@@ -94,27 +91,22 @@ public class RentalManageService {
                 throw new Exception("rentalmanage not found.");
             }
             //既存レコードのセット
-
             rentalManage.setId(rentalManageDto.getId());
             rentalManage.setStatus(rentalManageDto.getStatus());
             rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
             rentalManage.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
-            rentalManage.setAccount(account); 
+            rentalManage.setAccount(account);
             rentalManage.setStock(stock);
-            // rentalManage.setStockId(rentalManageDto.getStock().getId());
-            // rentalManage.setEmployeeId(rentalManageDto.getAccount().getEmployeeId());
-
             // データベースへの保存
             this.rentalManageRepository.save(rentalManage);
         } catch (Exception e) {
             throw e;
         }
     }
-    
-    //ここまで
+
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        
+
         if (status == RentalStatus.RENTAlING.getValue()) {
             rentalManage.setRentaledAt(timestamp);
         } else if (status == RentalStatus.RETURNED.getValue()) {
