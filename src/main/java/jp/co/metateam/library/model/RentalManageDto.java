@@ -49,7 +49,7 @@ public class RentalManageDto {
     private Account account;
 
 
-    public Optional<String> isValidDateTime(Date expectedRentalOn , Date expectedReturnOn) {
+    public Optional<String> ValidDateTime(Date expectedRentalOn , Date expectedReturnOn) {
         if (expectedRentalOn.compareTo(expectedReturnOn) >= 0) {
             return Optional.of("返却予定日は貸出予定日より後の日付を入力してください");
         }
@@ -57,20 +57,21 @@ public class RentalManageDto {
     }
 
     
-    public Optional<String> isValidStatus(Integer preStatus, Integer newStatus) {
+    public Optional<String> ValidStatus(Integer preStatus, Integer newStatus) {
         String errorMessage = "「%s」の場合は貸出ステータスを「%s」に変更できません";
         RentalStatus preRentalStatus = RentalStatus.get(preStatus);
+        RentalStatus newRentalStatus = RentalStatus.get(newStatus);
     
         if (!preStatus.equals(newStatus)) {
             switch (preRentalStatus) {
                 case RentalStatus.RENT_WAIT:
                     if (RentalStatus.RETURNED.getValue().equals(newStatus)) {
-                        return Optional.of(String.format(errorMessage, preRentalStatus.getText()));
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     }
                     break;
                 case RentalStatus.RENTALING:
                     if (RentalStatus.RENT_WAIT.getValue().equals(newStatus)) {
-                        return Optional.of(String.format(errorMessage, preRentalStatus.getText()));
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     }
                     break;
                 case RentalStatus.RETURNED:

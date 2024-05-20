@@ -149,7 +149,7 @@ public class RentalManageController {
             Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
 
 
-            Optional<String> dateError = rentalManageDto.isValidDateTime(expectedRentalOn, expectedReturnOn);
+            Optional<String> dateError = rentalManageDto.ValidDateTime(expectedRentalOn, expectedReturnOn);
             
             if(dateError.isPresent()){
                 FieldError fieldError = new FieldError("rentalManageDto","expectedReturnOn",dateError.get());
@@ -160,7 +160,7 @@ public class RentalManageController {
             }
 
 
-            Optional<String> statusError = rentalManageDto.isValidStatus(preStatus, newStatus);
+            Optional<String> statusError = rentalManageDto.ValidStatus(preStatus, newStatus);
 
             if(statusError.isPresent()){
                 FieldError fieldError = new FieldError("rentalManageDto","status",statusError.get());
