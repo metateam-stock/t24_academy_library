@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.validation.FieldError;
 
 import io.micrometer.common.util.StringUtils;
 import jp.co.metateam.library.model.Account;
@@ -50,6 +51,12 @@ public class RentalManageService {
     public RentalManage findById(Long id) {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
+
+    @Transactional
+    public List<RentalManage> findByStockIdAndStatus(String newStockId) {
+        return this.rentalManageRepository.findByStockIdAndStatus(newStockId);
+    }
+    
     
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {
@@ -117,6 +124,7 @@ public class RentalManageService {
             throw e;
         }
     }
+    
 
      
 
