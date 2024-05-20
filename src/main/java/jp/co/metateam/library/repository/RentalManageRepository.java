@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import jp.co.metateam.library.model.RentalManage;
@@ -14,6 +15,7 @@ public interface RentalManageRepository extends JpaRepository<RentalManage, Long
 
 	Optional<RentalManage> findById(Long id);
 
-    List<RentalManage> findAllByStatusIn(List<Integer> statuses);
+    @Query("select r from RentalManage r where r.stock.id = ?1 and r.status in (0,1)")
+    List<RentalManage> findByStockId(String StockId);
 
 }

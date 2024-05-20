@@ -57,8 +57,8 @@ public class RentalManageService {
     }
 
     @Transactional
-    public List<RentalManage> findAllByStatusIn(List<Integer> statuses) {
-        return rentalManageRepository.findAllByStatusIn(statuses);
+    public List<RentalManage> findByStockId(String StockId) {
+        return this.rentalManageRepository.findByStockId(StockId);
     }
 
 
@@ -141,37 +141,6 @@ public class RentalManageService {
             throw e;
         }
     } 
-
-
-
-
-
-
-
-    public void available(Long id, RentalManageDto rentalManageDto, BindingResult result) throws Exception {
-        try {
-
-           
-        } catch (Exception e) {
-            // Handle the exception
-            throw e;
-        }
-    }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
 }
 
 
