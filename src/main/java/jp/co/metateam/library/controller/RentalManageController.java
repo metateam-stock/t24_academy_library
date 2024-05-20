@@ -1,11 +1,13 @@
 package jp.co.metateam.library.controller;
 
 import java.security.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -32,7 +34,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import org.springframework.validation.FieldError;
-
 
 /**
  * 貸出管理関連クラスß
@@ -205,41 +206,38 @@ public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalM
 
         LocalDateTime expectedRentalOnLdt = Instant.ofEpochMilli(expectedRentalOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime expectedReturnOnLdt = Instant.ofEpochMilli(expectedReturnOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-       
+        List<FieldError> fieldErrors = new ArrayList<>();
         //貸出ステータスバリデーションチェック
         if (newStatus == 1 && ldt.isBefore(expectedRentalOnLdt)) {
-            FieldError fieldError = new FieldError("rentalManageDto", "status", "貸出予定日が未来のためこのステータスは選択できません");
-            result.addError(fieldError);
-            throw new Exception("Validation error.");
+            fieldErrors.add( new FieldError("rentalManageDto", "status", "貸出予定日が未来のためこのステータスは選択できません"));
 
         } else if (newStatus == 2 && ldt.isBefore(expectedReturnOnLdt)) {
-            FieldError fieldError = new FieldError("rentalManageDto", "status", "返却予定日が未来のためこのステータスは選択できません");
-                result.addError(fieldError);
-                throw new Exception("Validation error.");
+            fieldErrors.add( new FieldError("rentalManageDto", "status", "返却予定日が未来のためこのステータスは選択できません"));
 
         } else if (status == 0 && newStatus == 2) {
-            FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスは選択できません");
-            result.addError(fieldError);
-        throw new Exception("Validation error.");
+            fieldErrors.add( new FieldError("rentalManageDto", "status", "このステータスは選択できません"));
             
         } else if (status == 1 && (newStatus == 0 || newStatus == 3)) {
-            FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスは選択できません");
-            result.addError(fieldError);
-        throw new Exception("Validation error.");
-
+            fieldErrors.add( new FieldError("rentalManageDto", "status", "このステータスは選択できません"));
+            
         } else if (status == 2 && (newStatus == 0 || newStatus == 1 || newStatus == 3)) {
-            FieldError fieldError = new FieldError("rentalManageDto", "status", "返却済みからステータスの変更はできません");
-            result.addError(fieldError);
-        throw new Exception("Validation error.");
+            fieldErrors.add( new FieldError("rentalManageDto", "status", "返却済みからステータスの変更はできません"));
 
         } else if (status == 3 && (newStatus == 0 || newStatus == 1 || newStatus == 2)) {
-            FieldError fieldError = new FieldError("rentalManageDto", "status", "キャンセルからステータスの変更はできません");
-            result.addError(fieldError);
-        throw new Exception("Validation error.");
+            fieldErrors.add( new FieldError("rentalManageDto", "status", "キャンセルからステータスの変更はできません"));
+
         }
 
 
 
+
+        //リストのエラーを画面上に表示
+        if (!fieldErrors.isEmpty()) {
+            for (FieldError fieldError : fieldErrors) {
+                result.addError(fieldError);
+            }
+            throw new Exception("The date select is not possible.");
+        }
 
 
 
@@ -273,21 +271,20 @@ public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalM
                             if ((expectedReturnOn.before(listRentalRentalOn)) || (listRentalReturnOn.before(expectedRentalOn))) {
 
                             } else {
-                                FieldError fieldError = new FieldError("rentalManageDto", "stockId", "この期間で貸出できません");
-                                result.addError(fieldError);
-                                throw new Exception("The rental is not possible.");
+                                fieldErrors.add( new FieldError("rentalManageDto", "stockId", "この期間で貸出できません"));
+                                break;
                             }
                 }
                 
             }
 
-
-
-
-
-
-
-
+            //リストのエラーを画面上に表示
+            if (!fieldErrors.isEmpty()) {
+                for (FieldError fieldError : fieldErrors) {
+                    result.addError(fieldError);
+                }
+                throw new Exception("The rental is not possible.");
+            }
 
 
 
