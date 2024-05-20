@@ -57,12 +57,12 @@ public class RentalManageDto {
     }
 
     
-    public Optional<String> ValidStatus(Integer preStatus, Integer newStatus) {
+    public Optional<String> ValidStatus(Integer preStatus, Integer status) {
         String errorMessage = "「%s」の場合は貸出ステータスを「%s」に変更できません";
         RentalStatus preRentalStatus = RentalStatus.get(preStatus);
-        RentalStatus newRentalStatus = RentalStatus.get(newStatus);
+        RentalStatus newRentalStatus = RentalStatus.get(this.status);
     
-        if (!preStatus.equals(newRentalStatus)) {
+        if (!preStatus.equals(status)) {
             switch (preRentalStatus) {
                 case RentalStatus.RENT_WAIT:
                     if (RentalStatus.RETURNED.getValue().equals(newRentalStatus)) {
@@ -70,7 +70,7 @@ public class RentalManageDto {
                     }
                     break;
                 case RentalStatus.RENTALING:
-                    if (RentalStatus.RENT_WAIT.getValue().equals(newRentalStatus)) {
+                    if (RentalStatus.RENT_WAIT.getValue().equals(this.status)) {
                         return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     }
                     break;
