@@ -33,8 +33,10 @@ import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.service.StockService;
  
 import lombok.extern.log4j.Log4j2;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.Date;
 
  
 /**
@@ -76,15 +78,15 @@ public class RentalManageController {
  
     @GetMapping("/rental/add")
     public String add(Model model) {
-     //テーブルから情報を持ってくる
-     List<RentalManage> rentalManageList= this.rentalManageService.findAll();
-     List<Stock> stockList = this.stockService.findStockAvailableAll();
-     List<Account> accountList= this.accountService.findAll();
+        //テーブルから情報を持ってくる
+        List<RentalManage> rentalManageList= this.rentalManageService.findAll();
+        List<Stock> stockList = this.stockService.findStockAvailableAll();
+        List<Account> accountList= this.accountService.findAll();
  
      //モデル
-     model.addAttribute("rentalStatus", RentalStatus.values());
-     model.addAttribute("stockList", stockList);
-     model.addAttribute("accounts", accountList);
+        model.addAttribute("rentalStatus", RentalStatus.values());
+        model.addAttribute("stockList", stockList);
+        model.addAttribute("accounts", accountList);
  
         if (!model.containsAttribute("rentalManageDto")) {
             model.addAttribute("rentalManageDto", new RentalManageDto());
@@ -102,14 +104,14 @@ public class RentalManageController {
             // 登録処理
             this.rentalManageService.save(rentalManageDto);
  
-             return "redirect:/rental/index";
+            return "redirect:/rental/index";
         } catch (Exception e) {
-             log.error(e.getMessage());
+                log.error(e.getMessage());
  
-             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
-             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
+                ra.addFlashAttribute("rentalManageDto", rentalManageDto);
+                ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
  
-             return "redirect:/rental/add";
+            return "redirect:/rental/add";
         }
     }
     /**
@@ -127,23 +129,23 @@ public class RentalManageController {
         //ここでmodelオブジェクトに追加されたデータがViewに渡され、画面に表示される
        
        
-           if (!model.containsAttribute("rentalManageDto")) {//modelにrentalManageDtoが含まれているかチェック
-              RentalManageDto rentalManageDto = new RentalManageDto();//もし含まれていなければ、RentalManageDtoを新しく作成
-              RentalManage rentalManage= this.rentalManageService.findById(Long.valueOf(id));//idに紐づいたrentalManageオブジェクトを取得
+        if (!model.containsAttribute("rentalManageDto")) {//modelにrentalManageDtoが含まれているかチェック
+            RentalManageDto rentalManageDto = new RentalManageDto();//もし含まれていなければ、RentalManageDtoを新しく作成
+            RentalManage rentalManage= this.rentalManageService.findById(Long.valueOf(id));//idに紐づいたrentalManageオブジェクトを取得
              
  
-              model.addAttribute("rentalManageList",rentalManage);//rentalManageListという名前でrentalManageのデータをmodelに追加
+            model.addAttribute("rentalManageList",rentalManage);//rentalManageListという名前でrentalManageのデータをmodelに追加
              
-              rentalManageDto.setId(rentalManage.getId());
-              rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
-              rentalManageDto.setExpectedRentalOn(rentalManage.getExpectedRentalOn());
-              rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
-              rentalManageDto.setStatus(rentalManage.getStatus());
-              rentalManageDto.setStockId(rentalManage.getStock().getId());
+            rentalManageDto.setId(rentalManage.getId());
+            rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
+            rentalManageDto.setExpectedRentalOn(rentalManage.getExpectedRentalOn());
+            rentalManageDto.setExpectedReturnOn(rentalManage.getExpectedReturnOn());
+            rentalManageDto.setStatus(rentalManage.getStatus());
+            rentalManageDto.setStockId(rentalManage.getStock().getId());
  
-              model.addAttribute("rentalManageDto", rentalManageDto);//rentalManageオブジェクトからrentalManageDtoに必要なデータを渡している
+            model.addAttribute("rentalManageDto", rentalManageDto);//rentalManageオブジェクトからrentalManageDtoに必要なデータを渡している
  
-            }
+        }
    
             return "rental/edit";//ここに返す
     }
@@ -151,49 +153,61 @@ public class RentalManageController {
     * Postのリクエストがあった場合にこの処理を行う
     */
     @PostMapping("/rental/{id}/edit")
-
     public String update(@PathVariable("id") String id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
          //リクエストパスのidをString型で受け取る・@Validでバリデーションチェックをしけ結果をBindingResultに格納・RentalManageDtoオブジェクトを@ModelAttributeとして受け取る
 
-          
-            try {
+        try {
 
-                if (result.hasErrors()) {
-                    //resultにエラーの情報がある場合
-                     throw new Exception("Validation error.");
+            if (result.hasErrors()) {
+                //resultにエラーの情報がある場合
+                throw new Exception("Validation error.");
                      //エラーを投げる
-                }
+            }
 
-                RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));//変更前の貸出情報
-                //Integer preStatus = rentalManage.getStatus();
-                Optional<String> statusError = rentalManageDto.isValidStatus(rentalManage.getStatus());//rentalManageDtoの貸出ステータスが有効かどうか
-
-                if(statusError.isPresent()){
-                    //Dtoで行った貸出ステータスのバリデーションチェックでエラーがあった場合
-                    FieldError fieldError = new FieldError("rentalManageDto","status", statusError.get());
-                    //statusErrorから取得したエラーメッセージをfieldErrorに入れる
-                    result.addError(fieldError);
-                    //resultにエラーの情報を入れる
-                    throw new Exception("Validation error");
-                    //エラーを投げる
-                }
+            RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));//変更前の貸出情報
+            Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
+            Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
                 
-               // 登録処理
-                rentalManageService.update(Long.valueOf(id), rentalManageDto);
-                //指定されたidのrentalManageオブジェクトを更新
+            Optional<String> dateError = rentalManageDto.ValidDateTime(expectedRentalOn,expectedReturnOn);
+
+            if(dateError.isPresent()){
+                FieldError fieldError = new FieldError("rentalManageDto","date", dateError.get());
+                //dateErrorから取得したエラーメッセージをfieldErrorに入れる
+                result.addError(fieldError);
+                //resultにエラーの情報を入れる
+                throw new Exception("Validation error");
+                //エラーを投げる
+            }
+
+            Optional<String> statusError = rentalManageDto.isValidStatus(rentalManage.getStatus());
+                //rentalManageDtoの貸出ステータスが有効かどうか
+
+             if(statusError.isPresent()){
+                //Dtoで行った貸出ステータスのバリデーションチェックでエラーがあった場合
+                FieldError fieldError = new FieldError("rentalManageDto","status", statusError.get());
+                //statusErrorから取得したエラーメッセージをfieldErrorに入れる
+                result.addError(fieldError);
+                //resultにエラーの情報を入れる
+                throw new Exception("Validation error");
+                //エラーを投げる
+            }
+                
+            // 登録処理
+            rentalManageService.update(Long.valueOf(id), rentalManageDto);
+            //指定されたidのrentalManageオブジェクトを更新
    
-                return "redirect:/rental/index";
-                //更新された場合は指定されたリダイレクト先にデータを返す
+            return "redirect:/rental/index";
+            //更新された場合は指定されたリダイレクト先にデータを返す
 
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                //エラーがあった場合はエラーメッセージを表示するようにする
+        }catch (Exception e) {
+            log.error(e.getMessage());
+            //エラーがあった場合はエラーメッセージを表示するようにする
 
-                ra.addFlashAttribute("rentalManageDto", rentalManageDto);
-                ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
+            ra.addFlashAttribute("rentalManageDto", rentalManageDto);
+            ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
 
 
-                return String.format("redirect:/rental/%s/edit",id);//書籍編集画面に戻る
-           }
+            return String.format("redirect:/rental/%s/edit",id);//書籍編集画面に戻る
         }
     }
+}
