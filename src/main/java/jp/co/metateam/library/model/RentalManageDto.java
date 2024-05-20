@@ -48,31 +48,39 @@ public class RentalManageDto {
 
     private Account account;
 
+
+    public Optional<String> isValidDateTime(Date expectedRentalOn , Date expectedReturnOn) {
+        if (expectedRentalOn.compareTo(expectedReturnOn) >= 0) {
+            return Optional.of("返却予定日は貸出予定日より後の日付を入力してください");
+        }
+        return Optional.empty();
+    }
+
     
     public Optional<String> isValidStatus(Integer preStatus, Integer newStatus) {
-    if (!preStatus.equals(newStatus)) {
-        switch (preStatus) {
-            case 0:
-                if (newStatus.equals(RentalStatus.RETURNED.getValue())) {
-                    return Optional.of("「貸出待ち」の場合は貸出ステータスを「返却済み」に変更できません");
-                }
-                break;
-            case 1:
-                if (newStatus.equals(RentalStatus.RENT_WAIT.getValue())) {
-                    return Optional.of("「貸出中」の場合は貸出ステータスを「貸出待ち」に変更できません");
-                }
-                if (newStatus.equals(RentalStatus.CANCELED.getValue())) {
-                    return Optional.of("「貸出中」の場合は貸出ステータスを「キャンセル」に変更できません");
-                }
-                break;
-            case 2:
-                return Optional.of("返却済みの場合は貸出ステータスを変更できません");
-            case 3:
-                return Optional.of("キャンセルの場合は貸出ステータスを変更できません");
+        String errorMessage = "「%s」の場合は貸出ステータスを「%s」に変更できません";
+        RentalStatus preRentalStatus = RentalStatus.get(preStatus);
+    
+        if (!preStatus.equals(newStatus)) {
+            switch (preRentalStatus) {
+                case RentalStatus.RENT_WAIT:
+                    if (RentalStatus.RETURNED.getValue().equals(newStatus)) {
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText()));
+                    }
+                    break;
+                case RentalStatus.RENTALING:
+                    if (RentalStatus.RENT_WAIT.getValue().equals(newStatus)) {
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText()));
+                    }
+                    break;
+                case RentalStatus.RETURNED:
+                case RentalStatus.CANCELED:
+                    return Optional.of(String.format("「%s」の場合は貸出ステータスを変更できません", preRentalStatus.getText()));
+            }
         }
+        return Optional.empty(); // エラーメッセージがない場合
     }
-    return Optional.empty(); // エラーメッセージがない場合
-}
+    
 
 
 

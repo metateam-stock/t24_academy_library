@@ -80,7 +80,7 @@ public class RentalManageService {
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         
-        if (status == RentalStatus.RENTAlING.getValue()) {
+        if (status == RentalStatus.RENTALING.getValue()) {
             rentalManage.setRentaledAt(timestamp);
         } else if (status == RentalStatus.RETURNED.getValue()) {
             rentalManage.setReturnedAt(timestamp);
@@ -119,14 +119,7 @@ public class RentalManageService {
             throw e;
         }
     }
-    //バリデーションチェック
-    public boolean isValidEmployeeId(String employeeId, Model model) {
-        if (StringUtils.isEmpty(employeeId)) {
-            model.addAttribute("errEmployeeId", "書籍タイトルは必須");
-            return true;
-        }
-        return false;
-    }
+    
 
 
     
