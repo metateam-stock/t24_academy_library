@@ -62,15 +62,15 @@ public class RentalManageDto {
         RentalStatus preRentalStatus = RentalStatus.get(preStatus);
         RentalStatus newRentalStatus = RentalStatus.get(newStatus);
     
-        if (!preStatus.equals(newStatus)) {
+        if (!preStatus.equals(newRentalStatus)) {
             switch (preRentalStatus) {
                 case RentalStatus.RENT_WAIT:
-                    if (RentalStatus.RETURNED.getValue().equals(newStatus)) {
+                    if (RentalStatus.RETURNED.getValue().equals(newRentalStatus)) {
                         return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     }
                     break;
                 case RentalStatus.RENTALING:
-                    if (RentalStatus.RENT_WAIT.getValue().equals(newStatus)) {
+                    if (RentalStatus.RENT_WAIT.getValue().equals(newRentalStatus)) {
                         return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     }
                     break;
