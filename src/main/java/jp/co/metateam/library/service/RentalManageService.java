@@ -90,6 +90,10 @@ public class RentalManageService {
 
         return rentalManage;
     }
+
+
+
+
     @Transactional 
     public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
         try {
