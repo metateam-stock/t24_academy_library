@@ -65,7 +65,7 @@ public class RentalManageDto {
         if (!preStatus.equals(status)) {
             switch (preRentalStatus) {
                 case RentalStatus.RENT_WAIT:
-                    if (RentalStatus.RETURNED.getValue().equals(newRentalStatus)) {
+                if (RentalStatus.RETURNED.equals(newRentalStatus)) {
                         return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     }
                     break;
