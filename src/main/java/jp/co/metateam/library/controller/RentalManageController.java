@@ -1,4 +1,7 @@
 package jp.co.metateam.library.controller;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -84,6 +87,10 @@ public class RentalManageController {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+            //SQLに追加
+            Long log = rentalManageService.countByStockIdAndStatusIn(rentalManageDto.getStockId());
+            Long loggic = rentalManageService.countByStockIdAndStatusAndTermsIn(rentalManageDto.getStockId(), rentalManageDto.getExpectedRentalOn(), rentalManageDto.getExpectedReturnOn());
+
             // 登録処理
             this.rentalManageService.save(rentalManageDto);
 
@@ -100,7 +107,7 @@ public class RentalManageController {
 
     
     @GetMapping("/rental/{id}/edit")
-    public String edit(@PathVariable("id") String id, Model model) {
+    public String edit(@PathVariable("id") Long id, Model model) {
         
         List<Account> accountList = this.accountService.findAll();
         List<Stock> stockList = this.stockService.findAll();
@@ -128,7 +135,7 @@ public class RentalManageController {
     }
     
     @PostMapping("/rental/{id}/edit")
-    public String update(@PathVariable("id") String id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
+    public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
         try {
 
             RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));
@@ -137,12 +144,42 @@ public class RentalManageController {
             if(validerror != null){
                 result.addError(new FieldError("rentalManageDto", "status", validerror));
             }
-            //入力チェック
+            
+            
+            //追加箇所
+            //貸出可否チェック
+            String stockId = rentalManageDto.getStockId();
+            Long ID = rentalManageDto.getId();
+            Integer status = rentalManageDto.getStatus();
+            //SQL
+            Long stockcount = this.rentalManageService.countByStockIdAndStatusInAndIdNot(stockId, id);
+            //ステータスが貸出待ちか貸出中のものを持ってくる
+            if(status == 0 || status == 1) {
+                
+                //利用可か利用不可か
+                if(!(stockcount == 0)) {
+                    //重複件数のチェック
+                    Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
+                    Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
+                    //SQL
+                    Long rentalcount = this.rentalManageService.countByStockIdAndStatusAndIdNotAndTermsIn(stockId, id, expectedReturnOn, expectedRentalOn);
+                    //日付重複チェック
+                    if(!(stockcount == rentalcount)){
+                        String rentalError = "この書籍は貸出できません";
+                        result.addError(new FieldError("rentalManageDto", "expectedRentalOn", rentalError));
+                        result.addError(new FieldError("rentalManageDto", "expectedReturnOn", rentalError));
+                        throw new Exception("StockStatus record not found,");
+                    }
+                }
+            }
+            
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+            
+
             // 登録処理
-            rentalManageService.update(Long.valueOf(id), rentalManageDto);
+            this.rentalManageService.update(Long.valueOf(id), rentalManageDto);
 
             return "redirect:/rental/index";
         } catch (Exception e) {
@@ -157,7 +194,7 @@ public class RentalManageController {
             model.addAttribute("rentalStatus", RentalStatus.values());
             model.addAttribute("accounts", accountList);
             model.addAttribute("stockList", stockList);
-           // model.addAttribute("stockId",this.rentalManageService.findById(Long.valueOf(id)).getStock().getId());
+            model.addAttribute("stockId",this.rentalManageService.findById(Long.valueOf(id)).getStock().getId());
 
             return "rental/edit";
         }

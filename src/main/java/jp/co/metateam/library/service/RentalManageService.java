@@ -1,6 +1,8 @@
 package jp.co.metateam.library.service;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,31 @@ public class RentalManageService {
     public RentalManage findById(Long id) {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
+
+    
+    //追加箇所
+    @Transactional
+    public long countByStockIdAndStatusIn(String stockId){
+        return this.rentalManageRepository.countByStockIdAndStatusIn(stockId);
+    }
+
+    @Transactional
+    public long countByStockIdAndStatusInAndIdNot(String stockId, Long id){
+        return this.rentalManageRepository.countByStockIdAndStatusInAndIdNot(stockId, id);
+    }
+
+    @Transactional
+    public long countByStockIdAndStatusAndTermsIn(String stockId, Date expectedReturnOn, Date expectedRentalOn){
+        return this.rentalManageRepository.countByStockIdAndStatusAndTermsIn(stockId, expectedReturnOn, expectedRentalOn);
+    }
+
+    @Transactional
+    public long countByStockIdAndStatusAndIdNotAndTermsIn(String stockId, Long id, Date expectedReturnOn, Date expectedRentalOn){
+        return this.rentalManageRepository.countByStockIdAndStatusAndIdNotAndTermsIn(stockId, id, expectedReturnOn, expectedRentalOn);
+    }
+
+
+
 
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {
