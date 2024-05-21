@@ -70,9 +70,11 @@ public class RentalManageDto {
                     }
                     break;
                 case RentalStatus.RENTALING:
-                    if (RentalStatus.RENT_WAIT.getValue().equals(this.status)) {
+                    if (RentalStatus.RENT_WAIT.equals(newRentalStatus)) {
                         return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     }
+                    if (RentalStatus.CANCELED.equals(newRentalStatus)) 
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
                     break;
                 case RentalStatus.RETURNED:
                 case RentalStatus.CANCELED:
