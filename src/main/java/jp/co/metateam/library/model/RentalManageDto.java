@@ -75,20 +75,25 @@ public class RentalManageDto {
 
     public Optional<String> validateDate() {
         if (expectedReturnOn.before(expectedRentalOn)) {
-            return Optional.of("返却予定日は貸出予定日より前の日付にすることはできません");
+            return Optional.of("「返却予定日」を「貸出予定日」より前の日付にすることはできません");
         }
         return Optional.empty();
     }
 
     // 【追加実装】
-    // public Optional<String> validateExpectedRentalOn() {
-    // LocalDate date = LocalDate.now();
+    public Optional<String> validateExpectedRentalOn(Integer preRentalStatus) {
+        LocalDate date = LocalDate.now();
 
-    // //Date型クラス(expectedRentalOn)⇒LocalDate型クラスに変換する
+        // Date型クラス(expectedRentalOn)⇒LocalDate型クラスに変換する
+        LocalDate localDate = expectedRentalOn.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-    // if (!(expectedRentalOn.equals(date))) { // 編集後の日付が、今日の日付じゃなかったらtrue
-    // return Optional.of("本日の日付に変更してください");
-    // }
-    // return Optional.empty();
-    // }
+        if (preRentalStatus == RentalStatus.RENT_WAIT.getValue() && preRentalStatus != this.status) { // 0から変更してるかどうか
+            if (this.status == RentalStatus.RENTAlING.getValue()) { // 1に変更してるかどうか
+                if (!(localDate.equals(date))) { // 編集後の日付が、今日の日付じゃなかったらtrue
+                    return Optional.of("本日の日付に変更してください");
+                }
+            }
+        }
+        return Optional.empty();
+    }
 }

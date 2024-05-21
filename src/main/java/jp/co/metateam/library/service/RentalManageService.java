@@ -119,4 +119,18 @@ public class RentalManageService {
 
         return rentalManage;
     }
+
+    // rental addで使うList(SQLで取得したレコード)
+    @Transactional
+    public List<RentalManage> findByStockIdAndStatusIn(String Id) {
+        List<RentalManage> rentalManages = this.rentalManageRepository.findByStockAndStatusIn(Id);
+        return rentalManages;
+    }
+
+    // rental editで使うList(SQLで取得したレコード)
+    @Transactional
+    public List<RentalManage> findByStockIdAndStatusIn(String Id, Long rentalId) {
+        List<RentalManage> rentalManages = this.rentalManageRepository.findByStockIdAndStatusIn(Id, rentalId);
+        return rentalManages;
+    }
 }

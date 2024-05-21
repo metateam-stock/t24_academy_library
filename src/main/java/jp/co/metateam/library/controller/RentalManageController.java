@@ -83,9 +83,29 @@ public class RentalManageController {
     public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result,
             RedirectAttributes ra) {
         try {
+            // if (result.hasErrors()) {
+            // throw new Exception("Validation error.");
+            // }
+
+            String errorMessageInventoryStatus = CheckInventoryStatus(rentalManageDto.getStockId());
+            if (errorMessageInventoryStatus != null) {
+                result.addError(
+                        new FieldError("rentalManageDto", "stockId", errorMessageInventoryStatus));
+            }
+
+            // 貸出期間重複チェックの１つ目のメソッドを呼び出す処理
+            String errorMessageFirstDuration = firstAvailabilityCheckForLending(rentalManageDto,
+                    rentalManageDto.getStockId());
+
+            if (errorMessageFirstDuration != null) { // isPresent()メソッド：値を持っていればtrue
+                result.addError(new FieldError("rentalManageDto", "expectedRentalOn", errorMessageFirstDuration));
+                result.addError(new FieldError("rentalManageDto", "expectedReturnOn", errorMessageFirstDuration));
+            }
+
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+
             // 登録処理
             this.rentalManageService.save(rentalManageDto);
 
@@ -94,7 +114,7 @@ public class RentalManageController {
             log.error(e.getMessage());
 
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
-            ra.addFlashAttribute("org.springframework.validation.BindingResult.stockDto", result);
+            ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
 
             return "redirect:/rental/add";
         }
@@ -157,18 +177,27 @@ public class RentalManageController {
                 throw new Exception(errorMessageDate.get());
             }
 
-            // 【追加実装】 日付チェック(0→1の貸出予定日の整合性) ⇒メソッドはRentalManageDtoクラスにある
-            // Optional<String> errorMessageExpectedRentalOn =
-            // rentalManageDto.validateExpectedRentalOn();
+            // 【追加実装】 日付チェック(0→1の時に貸出予定日が今日に変更されているか) ⇒メソッドはRentalManageDtoクラスにある
+            Optional<String> errorMessageExpectedRentalOn = rentalManageDto.validateExpectedRentalOn(preRentalStatus);
 
-            // if (errorMessageExpectedRentalOn.isPresent()) { //
-            // isPresent()メソッド：値を持っていればtrue
-            // result.addError(
-            // new FieldError("rentalManageDto", "expectedRentalOn",
-            // errorMessageExpectedRentalOn.get()));
-            // throw new Exception(errorMessageExpectedRentalOn.get());//
-            // get()以外の選択肢があてはまるか調べてみる
-            // }
+            if (errorMessageExpectedRentalOn.isPresent()) { // isPresent()メソッド：値を持っていればtrue
+                result.addError(
+                        new FieldError("rentalManageDto", "expectedRentalOn", errorMessageExpectedRentalOn.get()));
+                throw new Exception(errorMessageExpectedRentalOn.get());// get()以外の選択肢があてはまるか調べてみる
+            }
+
+            // 貸出期間重複チェックの2つ目のメソッドを呼び出す処理
+            String errorMessageSecondDuration = secondAvailabilityCheckForLending(rentalManageDto,
+                    rentalManageDto.getStockId(),
+                    rentalManageDto.getId());
+
+            if (errorMessageSecondDuration != null) {
+                result.addError(
+                        new FieldError("rentalManageDto", "expectedRentalOn", errorMessageSecondDuration));
+                result.addError(
+                        new FieldError("rentalManageDto", "expectedReturnOn", errorMessageSecondDuration));
+                throw new Exception(errorMessageSecondDuration);
+            }
 
             // 更新処理
             this.rentalManageService.update(Long.parseLong(id), rentalManageDto);
@@ -181,6 +210,50 @@ public class RentalManageController {
             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
 
             return "redirect:/rental/" + id + "/edit";
+        }
+    }
+
+    // 在庫ステータスチェック
+    private String CheckInventoryStatus(String id) {
+        Stock stock = this.stockService.findById(id);
+        if (stock.getStatus() == 0) {
+            return null; // 利用可→エラーメッセージなし
+        } else {
+            return "この本はご利用できません"; // 利用不可→エラーメッセージを設定
+        }
+    }
+
+    // 貸出期間重複チェック「貸出登録の時」⇒貸出管理番号が付与されていない状態(引数が貸出編集の時と異なるため、違うメソッドが必要)
+    public String firstAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id) {
+        List<RentalManage> rentalManageList = this.rentalManageService.findByStockIdAndStatusIn(id);
+        if (rentalManageList != null) {
+            // 拡張for文
+            for (RentalManage rentalManage : rentalManageList) {
+                if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
+                        rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
+                    return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
+                }
+            }
+            return null;
+        } else {
+            return null;
+        }
+    }
+
+    // 貸出期間重複チェック「貸出編集の時」⇒貸出管理番号が付与されている状態(引数が貸出登録の時と異なるため、違うメソッドが必要)
+    public String secondAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id, Long rentalId) {
+        List<RentalManage> rentalManageList = this.rentalManageService.findByStockIdAndStatusIn(id, rentalId);
+        if (rentalManageList != null) {
+            // 拡張for文
+            for (RentalManage rentalManage : rentalManageList) {
+                if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
+                        rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
+                    return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
+                }
+            }
+            return null;
+        } else {
+            return null;
         }
     }
 }
