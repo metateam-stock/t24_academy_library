@@ -87,9 +87,12 @@ public class RentalManageDto {
         // Date型クラス(expectedRentalOn)⇒LocalDate型クラスに変換する
         LocalDate localDate = expectedRentalOn.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-        if (preRentalStatus == RentalStatus.RENT_WAIT.getValue() && preRentalStatus != this.status) { // 0から変更してるかどうか
-            if (this.status == RentalStatus.RENTAlING.getValue()) { // 1に変更してるかどうか
-                if (!(localDate.equals(date))) { // 編集後の日付が、今日の日付じゃなかったらtrue
+        // 0から変更してるかどうか
+        if (preRentalStatus == RentalStatus.RENT_WAIT.getValue() && preRentalStatus != this.status) {
+            // 1に変更してるかどうか
+            if (this.status == RentalStatus.RENTAlING.getValue()) {
+                // 編集後の日付が、今日の日付じゃなかったらtrue
+                if (!(localDate.equals(date))) {
                     return Optional.of("本日の日付に変更してください");
                 }
             }

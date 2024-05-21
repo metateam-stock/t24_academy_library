@@ -97,7 +97,7 @@ public class RentalManageController {
             String errorMessageFirstDuration = firstAvailabilityCheckForLending(rentalManageDto,
                     rentalManageDto.getStockId());
 
-            if (errorMessageFirstDuration != null) { // isPresent()メソッド：値を持っていればtrue
+            if (errorMessageFirstDuration != null) {
                 result.addError(new FieldError("rentalManageDto", "expectedRentalOn", errorMessageFirstDuration));
                 result.addError(new FieldError("rentalManageDto", "expectedReturnOn", errorMessageFirstDuration));
             }
@@ -227,7 +227,6 @@ public class RentalManageController {
     public String firstAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id) {
         List<RentalManage> rentalManageList = this.rentalManageService.findByStockIdAndStatusIn(id);
         if (rentalManageList != null) {
-            // 拡張for文
             for (RentalManage rentalManage : rentalManageList) {
                 if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
                         rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
@@ -244,7 +243,6 @@ public class RentalManageController {
     public String secondAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id, Long rentalId) {
         List<RentalManage> rentalManageList = this.rentalManageService.findByStockIdAndStatusIn(id, rentalId);
         if (rentalManageList != null) {
-            // 拡張for文
             for (RentalManage rentalManage : rentalManageList) {
                 if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
                         rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
