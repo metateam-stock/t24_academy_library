@@ -26,6 +26,7 @@ import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.BookMstDto;
+import jp.co.metateam.library.service.BookMstService;
 
 
 /**
@@ -38,16 +39,19 @@ public class RentalManageController {
     private final AccountService accountService;
     private final RentalManageService rentalManageService;
     private final StockService stockService;
+    private final BookMstService bookMstService;
 
     @Autowired
     public RentalManageController(
         AccountService accountService, 
         RentalManageService rentalManageService, 
-        StockService stockService
+        StockService stockService,
+        BookMstService bookMstService
     ) {
         this.accountService = accountService;
         this.rentalManageService = rentalManageService;
         this.stockService = stockService;
+        this.bookMstService = bookMstService;
     }
 
     /**
@@ -82,7 +86,7 @@ public class RentalManageController {
     }
 
     @PostMapping("/rental/add")
-    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
+    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
         try {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
@@ -98,6 +102,13 @@ public class RentalManageController {
         } catch (Exception e) {
             log.error(e.getMessage());
 
+            List<Account> accountList = this.accountService.findAll();
+            List<Stock> stockList = this.stockService.findStockAvailableAll();
+
+            model.addAttribute("rentalStatus", RentalStatus.values());
+            model.addAttribute("accounts", accountList);
+            model.addAttribute("stockList", stockList);
+
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
 
@@ -110,7 +121,7 @@ public class RentalManageController {
     public String edit(@PathVariable("id") Long id, Model model) {
         
         List<Account> accountList = this.accountService.findAll();
-        List<Stock> stockList = this.stockService.findAll();
+        List<Stock> stockList = this.stockService.findStockAvailableAll();
 
         model.addAttribute("rentalStatus", RentalStatus.values());
         model.addAttribute("accounts", accountList);
@@ -152,24 +163,27 @@ public class RentalManageController {
             Long ID = rentalManageDto.getId();
             Integer status = rentalManageDto.getStatus();
             //SQL
-            Long stockcount = this.rentalManageService.countByStockIdAndStatusInAndIdNot(stockId, id);
             //ステータスが貸出待ちか貸出中のものを持ってくる
+            Long stockcount = this.rentalManageService.countByStockIdAndStatusInAndIdNot(stockId, id);
+            //0または1かの判定
             if(status == 0 || status == 1) {
                 
                 //利用可か利用不可か
                 if(!(stockcount == 0)) {
-                    //重複件数のチェック
+                    //重複件数
                     Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
                     Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
                     //SQL
                     Long rentalcount = this.rentalManageService.countByStockIdAndStatusAndIdNotAndTermsIn(stockId, id, expectedReturnOn, expectedRentalOn);
+
+
                     //日付重複チェック
                     if(!(stockcount == rentalcount)){
                         String rentalError = "この書籍は貸出できません";
                         result.addError(new FieldError("rentalManageDto", "expectedRentalOn", rentalError));
                         result.addError(new FieldError("rentalManageDto", "expectedReturnOn", rentalError));
                         throw new Exception("StockStatus record not found,");
-                    }
+                    }                    
                 }
             }
             
