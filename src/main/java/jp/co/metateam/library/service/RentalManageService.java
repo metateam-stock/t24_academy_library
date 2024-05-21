@@ -40,6 +40,18 @@ public class RentalManageService {
 
         return rentalManageList;
     }
+      //rental editで使うList 　　SQLで取得したレコード
+      @Transactional
+      public List<RentalManage> findByStockIdAndStatusIn(String Id,Long rentalId){
+          List <RentalManage> rentalManages = this.rentalManageRepository.findByStockIdAndStatusIn(Id, rentalId);
+          return rentalManages;
+      }
+            //rental addで使うList 　　SQLで取得したレコード
+      @Transactional
+      public List <RentalManage> findByStockIdAndStatusIn(String Id){
+          List <RentalManage> rentalManages = this.rentalManageRepository.findRentalByStockId(Id);
+          return rentalManages;
+      }
 
     @Transactional
     public RentalManage findById(Long id) {
