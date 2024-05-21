@@ -74,7 +74,6 @@ public class RentalManageController {
 
     @GetMapping("/rental/add")
     public String add(Model model) {
-        List<RentalManage> rentalManageList = this.rentalManageService.findAll();
         List<Account> accountList = this.accountService.findAll();
         List<Stock> stockList = this.stockService.findAll();
 
@@ -108,27 +107,18 @@ public class RentalManageController {
                 throw new Exception("StockStatus record not found.");
             }
 
-            Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
-            Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
+            // stockIdに紐づいたアカウントを全権取得
             List<RentalManage> rentalManageList = rentalManageService.findByStockId(stockId);
             if (rentalManageList.isEmpty()) {
                 throw new Exception("RentalManageList record not found.");
             }
 
             // 日付重複チェック
-            for (RentalManage rentalManage : rentalManageList) {
-                Date listRentalRentalOn = rentalManage.getExpectedRentalOn();
-                Date listRentalReturnOn = rentalManage.getExpectedReturnOn();
-
-                if ((expectedReturnOn.before(listRentalRentalOn))
-                        || (listRentalReturnOn.before(expectedRentalOn))) {
-
-                } else {
-                    FieldError fieldError = new FieldError("rentalManageDto", "stockId", "この期間で貸出できません");
-                    result.addError(fieldError);
-                    throw new Exception("StockStatus record not found.");
-                }
-
+            rentalManageDto.validRentalDateAdd(rentalManageList);
+            if (!rentalManageDto.validRentalDateAdd(rentalManageList)) {
+                FieldError fieldError = new FieldError("rentalManageDto", "stockId", "この期間で貸出できません");
+                result.addError(fieldError);
+                throw new Exception("StockStatus record not found.");
             }
 
             // 登録処理
@@ -180,37 +170,12 @@ public class RentalManageController {
             }
 
             RentalManage valRentalManage = this.rentalManageService.findById(id);
-            int status = valRentalManage.getStatus();
-            int newStatus = rentalManageDto.getStatus();
-            LocalDateTime ldt = LocalDateTime.now();
-            Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
-            Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
-
-            LocalDateTime expectedRentalOnLdt = Instant.ofEpochMilli(expectedRentalOn.getTime())
-                    .atZone(ZoneId.systemDefault()).toLocalDateTime();
-            LocalDateTime expectedReturnOnLdt = Instant.ofEpochMilli(expectedReturnOn.getTime())
-                    .atZone(ZoneId.systemDefault()).toLocalDateTime();
             List<FieldError> fieldErrors = new ArrayList<>();
-            
+
             // 貸出ステータスバリデーションチェック
-            if (newStatus == 1 && ldt.isBefore(expectedRentalOnLdt)) {
-                fieldErrors.add(new FieldError("rentalManageDto", "status", "貸出予定日が未来のためこのステータスは選択できません"));
-
-            } else if (newStatus == 2 && ldt.isBefore(expectedReturnOnLdt)) {
-                fieldErrors.add(new FieldError("rentalManageDto", "status", "返却予定日が未来のためこのステータスは選択できません"));
-
-            } else if (status == 0 && newStatus == 2) {
-                fieldErrors.add(new FieldError("rentalManageDto", "status", "このステータスは選択できません"));
-
-            } else if (status == 1 && (newStatus == 0 || newStatus == 3)) {
-                fieldErrors.add(new FieldError("rentalManageDto", "status", "このステータスは選択できません"));
-
-            } else if (status == 2 && (newStatus == 0 || newStatus == 1 || newStatus == 3)) {
-                fieldErrors.add(new FieldError("rentalManageDto", "status", "返却済みからステータスの変更はできません"));
-
-            } else if (status == 3 && (newStatus == 0 || newStatus == 1 || newStatus == 2)) {
-                fieldErrors.add(new FieldError("rentalManageDto", "status", "キャンセルからステータスの変更はできません"));
-
+            String erorrMessage = rentalManageDto.validStatus(valRentalManage);
+            if (!erorrMessage.isEmpty()) {
+                fieldErrors.add(new FieldError("rentalManageDto", "status", erorrMessage));
             }
 
             // リストのエラーを画面上に表示
@@ -238,22 +203,9 @@ public class RentalManageController {
             }
 
             // 日付重複チェック
-            for (RentalManage rentalManage : rentalManageList) {
-                if (id.equals(rentalManage.getId())) {
-
-                } else {
-                    Date listRentalRentalOn = rentalManage.getExpectedRentalOn();
-                    Date listRentalReturnOn = rentalManage.getExpectedReturnOn();
-
-                    if ((expectedReturnOn.before(listRentalRentalOn))
-                            || (listRentalReturnOn.before(expectedRentalOn))) {
-
-                    } else {
-                        fieldErrors.add(new FieldError("rentalManageDto", "stockId", "この期間で貸出できません"));
-                        break;
-                    }
-                }
-
+            rentalManageDto.validRentalDateEdit(rentalManageList);
+            if (!rentalManageDto.validRentalDateEdit(rentalManageList)) {
+                fieldErrors.add(new FieldError("rentalManageDto", "stockId", "この期間で貸出できません"));
             }
 
             // リストのエラーを画面上に表示
