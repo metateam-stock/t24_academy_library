@@ -1,8 +1,10 @@
 package jp.co.metateam.library.service;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ import jp.co.metateam.library.repository.RentalManageRepository;
 import jp.co.metateam.library.repository.StockRepository;
 import jp.co.metateam.library.values.RentalStatus;
 import jp.co.metateam.library.model.RentalManageDto;
+import jp.co.metateam.library.values.StockStatus;
+
 
 @Service
 public class RentalManageService {
@@ -130,6 +134,7 @@ public class RentalManageService {
          //貸出待ちから貸出中に変更するのは、貸出予定日当日である必要がある
         }
         return null;
+
     }
     
 
@@ -150,4 +155,24 @@ public class RentalManageService {
 
         return rentalManage;
     }
+    @Transactional
+    public Optional<String> rentalAble(String stockId, Date expected_return_on, Date expected_rental_on){
+        if(rentalManageRepository.count(stockId) == 0) {
+            return Optional.of("この本は貸し出せません");
+        }
+        if(rentalManageRepository.addtest(stockId) != rentalManageRepository.addwhetherDay( stockId, expected_return_on, expected_rental_on)){
+            return Optional.of("この本は貸し出せません");
+        }
+        return Optional.empty();
+    } 
+    @Transactional
+    public Optional<String> rentaleditAble(String stockId,Long id, Date expected_return_on, Date expected_rental_on){
+        if(rentalManageRepository.count(stockId) == 0) {
+            return Optional.of("この本は貸し出せません");
+        }
+        if(rentalManageRepository.whetherDay( stockId, id, expected_return_on, expected_rental_on) != rentalManageRepository.test(stockId, id)){
+            return Optional.of("この本は貸し出せません");
+        }
+        return Optional.empty();
+    }   
 }

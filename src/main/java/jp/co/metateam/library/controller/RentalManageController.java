@@ -40,6 +40,8 @@ import jp.co.metateam.library.service.StockService;
 import jp.co.metateam.library.values.StockStatus;
 import lombok.extern.log4j.Log4j2;
 
+import java.util.Optional;
+
  
 /**
  * 貸出管理関連クラスß
@@ -81,8 +83,9 @@ public class RentalManageController {
  
     @GetMapping("/rental/add")
     public String add(Model model) {
-        List<Stock> stockList = this.stockService.findAll();
+        List<Stock> stockList = this.stockService.findStockAvailableAll();
         List<Account> accounts = this.accountService.findAll();
+        List <RentalManage> rentalManageList = this.rentalManageService.findAll();
 
         model.addAttribute("accounts", accounts);
         model.addAttribute("stockList", stockList);
@@ -99,7 +102,13 @@ public class RentalManageController {
     public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
         try {
             if (result.hasErrors()) {
-                throw new Exception("Validation error.");
+                throw new Exception("Validation error.");            
+            }
+            Optional<String> a = rentalManageService.rentalAble(rentalManageDto.getStockId(), new java.sql.Date(rentalManageDto.getExpectedRentalOn().getTime()),  new java.sql.Date(rentalManageDto.getExpectedReturnOn().getTime()));
+            if (a.isPresent()){
+                FieldError fieldError = new FieldError("rentalManageDto","status",a.get());
+                result.addError(fieldError);
+                throw new Exception("Validetion error");
             }
             // 登録処理
             this.rentalManageService.save(rentalManageDto);
@@ -169,13 +178,20 @@ public class RentalManageController {
              if (result.hasErrors()) {
                  throw new Exception("Validation error.");                 
              }
+
+             Optional<String> b = rentalManageService.rentaleditAble(rentalManageDto.getStockId(),rentalManageDto.getId(), new java.sql.Date(rentalManageDto.getExpectedReturnOn().getTime()),  new java.sql.Date(rentalManageDto.getExpectedRentalOn().getTime()));
+             if (b.isPresent()){
+                 FieldError fieldError = new FieldError("rentalManageDto","status",b.get());
+                 result.addError(fieldError);
+                 throw new Exception("Validetion error");
+             }
              // 更新処理
              this.rentalManageService.update(Long.valueOf(id), rentalManageDto);
  
              return "redirect:/rental/index";
          } catch (Exception e) {
             log.error(e.getMessage());
-            List <Stock> stockList = this.stockService.findAll();  //在庫管理番号のプルダウンリスト作成
+            List <Stock> stockList = this.stockService.findStockAvailableAll();  //在庫管理番号のプルダウンリスト作成
             List <Account> accounts = this.accountService.findAll(); //社員番号のプルダウンリスト作成
         
                 model.addAttribute("stockList", stockList); //在庫管理番号のリストを表示（プルダウン）
