@@ -110,6 +110,7 @@ public class RentalManageController {
                     throw new Exception("Validation error.");
                 }
                 //在庫DBから在庫ステータスと一致した全レコードを受け取る
+
                 Stock stock = this.stockService.findById(rentalManageDto.getStockId());
 
                 int stockStatus = stock.getStatus();
@@ -121,6 +122,7 @@ public class RentalManageController {
                 }
                 //入力された在庫管理番号を取得
                 String newstockId = rentalManageDto.getStockId();
+
                 //貸出管理テーブルから在庫管理番号に紐づいたステータスと一致する０，１の全レコードを取得
                 List<RentalManage> statusList = this.rentalManageService.findByStockIdAndStatus(newstockId);
 
@@ -136,9 +138,7 @@ public class RentalManageController {
                 for (RentalManage list : statusList) {
                     Date exRentaledAt = list.getExpectedRentalOn();
                     Date exReturnedAt = list.getExpectedReturnOn();
-                    if(eReturnedAt.before(exRentaledAt)){
-                    
-                    }else if(exReturnedAt.before(eRentaledAt)){
+                    if(eReturnedAt.before(exRentaledAt)||exReturnedAt.before(eRentaledAt)){
                        
                     }else{
                         FieldError fieldError = new FieldError("rentalManageDto", "stockId", "この書籍は現在利用中のため貸出できません");
@@ -207,24 +207,23 @@ public class RentalManageController {
             Date eRentaledAt = rentalManageDto.getExpectedRentalOn();
             Date eReturnedAt = rentalManageDto.getExpectedReturnOn();
             Date ldt = new Date();
-            // LocalDateTime eRentaledidt = LocalDateTime.ofInstant(eRentaledAt.toInstant(), ZoneId.systemDefault());
-            
-            // LocalDateTime eReturnedidt = LocalDateTime.ofInstant(eReturnedAt.toInstant(), ZoneId.systemDefault());
+                // LocalDateTime eRentaledidt = LocalDateTime.ofInstant(eRentaledAt.toInstant(), ZoneId.systemDefault());
+                // LocalDateTime eReturnedidt = LocalDateTime.ofInstant(eReturnedAt.toInstant(), ZoneId.systemDefault());
 
             if (newStatus == 1 && ldt.before(eRentaledAt)){
-                // フィールドのエラーを表し、Formクラス名，フィールド名，エラーメッセージを渡す。
-                // getObjectNameではフォームクラス名が取得できる。
+            // フィールドのエラーを表し、Formクラス名，フィールド名，エラーメッセージを渡す。
+            // getObjectNameではフォームクラス名が取得できる。
                 FieldError fieldError = new FieldError("rentalManageDto", "status", "貸出中は登録された貸出予定日以降の日付では選択できません");
-                // エラーを追加する。
+            // エラーを追加する。
                 result.addError(fieldError);
                 throw new Exception("Validation error.");
 
 
             }else if (newStatus == 2 && ldt.before(eReturnedAt)){
-           // フィールドのエラーを表し、Formクラス名，フィールド名，エラーメッセージを渡す。
-                // getObjectNameではフォームクラス名が取得できる。
+            // フィールドのエラーを表し、Formクラス名，フィールド名，エラーメッセージを渡す。
+            // getObjectNameではフォームクラス名が取得できる。
                 FieldError fieldError = new FieldError("rentalManageDto", "status", "返却済みは登録された返却予定日以降の日付では選択できません");
-                // エラーを追加する。
+            // エラーを追加する。
                 result.addError(fieldError);
                 throw new Exception("Validation error.");
 
@@ -236,7 +235,6 @@ public class RentalManageController {
             }
             //在庫DBから在庫ステータスと一致した全レコードを受け取る
             Stock stock = this.stockService.findById(rentalManageDto.getStockId());
-
             int stockStatus = stock.getStatus();
 
             if (stockStatus == 1){
@@ -255,24 +253,27 @@ public class RentalManageController {
             return "redirect:/rental/index";}
 
             //ステータスが０，１だったらif文で日付チェック
-
             for (RentalManage list : statusList) {
                 Date exRentaledAt = list.getExpectedRentalOn();
                 Date exReturnedAt = list.getExpectedReturnOn();
-                if(id == rentalManage.getId()){  }
 
-                if(eReturnedAt.before(exRentaledAt)){
-                    
-                }else if(exReturnedAt.before(eRentaledAt)){
-                    
-                }else{
+                
+                if(id != list.getId()){
+                   
+                    if(!eReturnedAt.before(exRentaledAt)&&!exReturnedAt.before(eRentaledAt)){
+                            
                         FieldError fieldError = new FieldError("rentalManageDto", "stockId", "この書籍は現在利用中のため貸出できません");
                         result.addError(fieldError);
 
                         throw new Exception("renatlcheck error.");
+                    }
                 }
+            }
+    
+            
                 
-            }   
+                
+               
             
 
             this.rentalManageService.update(id,rentalManageDto);             
@@ -289,10 +290,9 @@ public class RentalManageController {
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
 
-           
             // return "redirect:/rental/"+id+"/edit";
            return String.format("redirect:/rental/%s/edit", id);
-        //    return "rental/edit";
+            //    return "rental/edit";
         }
     }
 }
