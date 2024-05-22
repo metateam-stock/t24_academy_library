@@ -140,9 +140,6 @@ public String add(Model model) {
                 rentalManageDto.setStatus(rentalManage.getStatus());
                 rentalManageDto.setEmployeeId(rentalManage.getAccount().getEmployeeId());
                 rentalManageDto.setStockId(rentalManage.getStock().getId());
-    
-    
-    
                 model.addAttribute("rentalManageDto", rentalManageDto );
             }
     
@@ -246,19 +243,7 @@ public String add(Model model) {
             return null;
         }
     } 
-    public void prepareModelAttributes(Model model){
- 
-        // バリデーションエラーがある場合は編集画面に戻るためのデータを取得
-        List<Stock> stockList = this.stockService.findStockAvailableAll();
-        List<Account> accounts = this.accountService.findAll();
-     
-        // モデルにデータを追加
-        model.addAttribute("accounts", accounts);
-        model.addAttribute("stockList", stockList);
-        model.addAttribute("rentalStatus", RentalStatus.values());
-        }
-    }  
-
+}
     
     
     
