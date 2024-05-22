@@ -2,11 +2,13 @@ package jp.co.metateam.library.model;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jp.co.metateam.library.values.RentalStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,4 +47,44 @@ public class RentalManageDto {
     private Stock stock;
 
     private Account account;
+
+
+    public Optional<String> ValidDateTime(Date expectedRentalOn , Date expectedReturnOn) {
+        if (expectedRentalOn.compareTo(expectedReturnOn) >= 0) {
+            return Optional.of("返却予定日は貸出予定日より後の日付を入力してください");
+        }
+        return Optional.empty();
+    }
+
+    
+    public Optional<String> ValidStatus(Integer preStatus, Integer status) {
+        String errorMessage = "「%s」の場合は貸出ステータスを「%s」に変更できません";
+        RentalStatus preRentalStatus = RentalStatus.get(preStatus);
+        RentalStatus newRentalStatus = RentalStatus.get(this.status);
+    
+        if (!preStatus.equals(status)) {
+            switch (preRentalStatus) {
+                case RentalStatus.RENT_WAIT:
+                if (RentalStatus.RETURNED.equals(newRentalStatus)) {
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
+                    }
+                    break;
+                case RentalStatus.RENTALING:
+                    if (RentalStatus.RENT_WAIT.equals(newRentalStatus)) {
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
+                    }
+                    if (RentalStatus.CANCELED.equals(newRentalStatus)) 
+                        return Optional.of(String.format(errorMessage, preRentalStatus.getText(), newRentalStatus.getText()));
+                    break;
+                case RentalStatus.RETURNED:
+                case RentalStatus.CANCELED:
+                    return Optional.of(String.format("「%s」の場合は貸出ステータスを変更できません", preRentalStatus.getText()));
+            }
+        }
+        return Optional.empty(); // エラーメッセージがない場合
+    }
+    
+
+
+
 }
