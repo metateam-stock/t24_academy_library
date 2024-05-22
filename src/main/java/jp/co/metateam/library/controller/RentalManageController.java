@@ -86,12 +86,22 @@ public class RentalManageController {
 
     
     @PostMapping("/rental/add")
-    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
+    public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra , Model model) {
         try {
+            String rentalDataerror = this.rentalCheck(rentalManageDto, rentalManageDto.getStockId());
 
+            
+            if (rentalDataerror != null) {
+                result.addError(new FieldError("rentalManageDto", "expectedRentalOn", rentalDataerror));
+            }
+            if (rentalDataerror != null) {
+                result.addError(new FieldError("rentalManageDto", "expectedReturnOn", rentalDataerror));
+            }
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+            
+ 
             // 登録処理
             this.rentalManageService.save(rentalManageDto);
 
@@ -99,11 +109,37 @@ public class RentalManageController {
         } catch (Exception e) {
             log.error(e.getMessage());
 
+            //List<Account> accountList = this.accountService.findAll();
+
+            //List<Stock> stockList = this.stockService.findAll();
+ 
+            // model.addAttribute("accounts", accountList);
+
+            // model.addAttribute("stockList", stockList);
+
+            //model.addAttribute("rentalStatus", RentalStatus.values());
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
-            ra.addFlashAttribute("org.springframework.validation.BindingResult.stockDto", result);
+            ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
 
             return "redirect:/rental/add";
         }
+        
+    }
+    public String rentalCheck(RentalManageDto rentalManageDto, String id) {
+        // 貸出管理のDBから在庫管理番号に紐づくレコードのうちステータスが0,1のものを全件取得しリストの格納
+        List<RentalManage> rentalAvailable = this.rentalManageService.findByStockIdAndStatusIn2(id);
+ 
+        if (rentalAvailable != null) {
+ 
+            // 取得したレコードが０件の場合、noならループ、yesなら終了
+            for (RentalManage List : rentalAvailable) {
+                if (List.getExpectedRentalOn().before(rentalManageDto.getExpectedReturnOn())
+                        && List.getExpectedReturnOn().after(rentalManageDto.getExpectedRentalOn())) {
+                    return "この書籍は、入力された日付で貸出できません";
+                }
+            }
+        }
+        return null;
     }
 
 
@@ -147,6 +183,16 @@ public class RentalManageController {
             Integer newStatus = rentalManageDto.getStatus();
             Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
             Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
+            String rentalDataerror = this.rentalCheck(rentalManageDto, rentalManageDto.getStockId(), rentalManageDto.getId());
+ 
+            
+            if (rentalDataerror != null) {
+                result.addError(new FieldError("rentalManageDto", "expectedRentalOn", rentalDataerror));
+            }
+            if (rentalDataerror != null) {
+                result.addError(new FieldError("rentalManageDto", "expectedReturnOn", rentalDataerror));
+            }
+
 
 
             Optional<String> dateError = rentalManageDto.ValidDateTime(expectedRentalOn, expectedReturnOn);
@@ -169,6 +215,9 @@ public class RentalManageController {
 
                 throw new Exception("Validation error.");
             }
+
+            
+
         
             
         if (result.hasErrors()) {
@@ -189,6 +238,24 @@ public class RentalManageController {
             String formattedId = String.format("%s", id);
             return "redirect:/rental/" + formattedId + "/edit";
         }
+    }
+
+    public String rentalCheck(RentalManageDto rentalManageDto, String id, Long rentalId) {
+        // 貸出管理のDBから在庫管理番号に紐づくレコードのうちステータスが0,1のものを全件取得しリストの格納
+        List<RentalManage> rentalAvailable = this.rentalManageService.findByStockIdAndStatusIn1(id,
+                Long.valueOf(rentalId));
+ 
+        if (rentalAvailable != null) {
+ 
+            // 取得したレコードが０件の場合、noならループ、yesなら終了
+            for (RentalManage List : rentalAvailable) {
+                if (List.getExpectedRentalOn().before(rentalManageDto.getExpectedReturnOn())
+                        && List.getExpectedReturnOn().after(rentalManageDto.getExpectedRentalOn())) {
+                    return "この書籍は、入力された日付で貸出できません";
+                }
+            }
+        }
+        return null;
     }
 
 

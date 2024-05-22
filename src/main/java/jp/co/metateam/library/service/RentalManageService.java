@@ -43,10 +43,24 @@ public class RentalManageService {
         return rentalManageList;
     }
 
+
     @Transactional
     public RentalManage findById(Long id) {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
+
+    @Transactional
+    public List<RentalManage> findByStockIdAndStatusIn1(String Id, Long rentalId) {
+        List<RentalManage> rentalAvailable = this.rentalManageRepository.findByStockIdAndStatusIn1(Id,Long.valueOf(rentalId));
+        return rentalAvailable;
+    }
+
+    @Transactional
+    public List<RentalManage> findByStockIdAndStatusIn2(String Id) {
+        List<RentalManage> rentalAvailable = this.rentalManageRepository.findByStockIdAndStatusIn2(Id);
+        return rentalAvailable;
+    }
+
 
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {
