@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
 import io.micrometer.common.util.StringUtils;
 import jp.co.metateam.library.model.Account;
@@ -21,28 +23,31 @@ import jp.co.metateam.library.repository.BookMstRepository;
 import jp.co.metateam.library.repository.RentalManageRepository;
 import jp.co.metateam.library.repository.StockRepository;
 import jp.co.metateam.library.values.RentalStatus;
+import jp.co.metateam.library.values.StockStatus;
 
 @Service
 public class RentalManageService {
-    
+
     private final AccountRepository accountRepository;
     private final RentalManageRepository rentalManageRepository;
     private final StockRepository stockRepository;
+    private final StockService stockService;
 
-     @Autowired
+    @Autowired
     public RentalManageService(
-        AccountRepository accountRepository,
-        RentalManageRepository rentalManageRepository,
-        StockRepository stockRepository
-    ) {
+            AccountRepository accountRepository,
+            RentalManageRepository rentalManageRepository,
+            StockRepository stockRepository,
+            StockService stockService) {
         this.accountRepository = accountRepository;
         this.rentalManageRepository = rentalManageRepository;
         this.stockRepository = stockRepository;
+        this.stockService = stockService;
     }
 
     @Transactional
-    public List <RentalManage> findAll() {
-        List <RentalManage> rentalManageList = this.rentalManageRepository.findAll();
+    public List<RentalManage> findAll() {
+        List<RentalManage> rentalManageList = this.rentalManageRepository.findAll();
 
         return rentalManageList;
     }
@@ -52,19 +57,21 @@ public class RentalManageService {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
 
-    //貸出登録の貸出可否チェック用のリスト取得
-    public List<RentalManage> findByStockIdAndStatusIn(String StockId){
-        List<RentalManage> rentalAvailable =this.rentalManageRepository.findByStockIdAndStatusIn(StockId);
-        return rentalAvailable;
-    }
-    
-    //貸出編集の貸出可否チェック用のリスト取得
-    public List<RentalManage> findByStockIdAndStatusIn(String StockId, Long retalId){
-        List<RentalManage> rentalAvailable =this.rentalManageRepository.findByStockIdAndStatusIn(StockId,retalId);
+    // 貸出登録の貸出可否チェック用のリスト取得
+    public List<RentalManage> findByStockIdAndStatusIn(String StockId) {
+        List<RentalManage> rentalAvailable = this.rentalManageRepository
+            .findByStockIdAndStatusIn(StockId);
         return rentalAvailable;
     }
 
-    @Transactional 
+    // 貸出編集の貸出可否チェック用のリスト取得
+    public List<RentalManage> findByStockIdAndStatusIn(String StockId, Long retalId) {
+        List<RentalManage> rentalAvailable = this.rentalManageRepository
+            .findByStockIdAndStatusIn(StockId, retalId);
+        return rentalAvailable;
+    }
+
+    @Transactional
     public void save(RentalManageDto rentalManageDto) throws Exception {
         try {
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
@@ -94,25 +101,36 @@ public class RentalManageService {
     }
 
     @Transactional
-    public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
+    public void update(Long rentalId, RentalManageDto rentalManageDto, BindingResult result, String stockId)
+            throws Exception {
         try {
-            // 既存レコード取得
+            RentalManage rentalManage = this.findById(rentalId);
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
-            RentalManage updateTargetBook = this.rentalManageRepository.findById(id).orElse(null);
+            RentalManage updateTargetBook = this.rentalManageRepository.findById(rentalId).orElse(null);
             Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);
+            Stock rentalBook = stockService.findById(stockId);
 
-        
+            // コントローラーで表示した感じで
             if (updateTargetBook == null) {
                 throw new Exception("RentalManage record not found.");
             }
             if (account == null) {
-                throw new Exception("Account not found.");
+                result.addError(new FieldError("rentalManageDto", "employeeId", "選択された社員番号は存在しません"));
             }
             if (stock == null) {
                 throw new Exception("Stock not found.");
             }
 
-            //updateTargetBook.setId(rentalManageDto.getId());
+            if (rentalBook.getStatus() == StockStatus.RENT_NOT_AVAILABLE.getValue()) {
+                result.addError(new FieldError("rentalManageDto", "stockId", "選択された在庫管理番号が存在しません"));
+            }
+
+            if (result.hasErrors()) {
+                throw new Exception("Validation error.");
+            }
+
+            updateTargetBook = setRentalStatusDate(rentalManage, rentalManageDto.getStatus());
+
             updateTargetBook.setAccount(account);
             updateTargetBook.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
             updateTargetBook.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
@@ -126,11 +144,10 @@ public class RentalManageService {
         }
     }
 
-    
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        
-        if (status == RentalStatus.RENTAlING.getValue()) {
+
+        if (status == RentalStatus.RENTALING.getValue()) {
             rentalManage.setRentaledAt(timestamp);
         } else if (status == RentalStatus.RETURNED.getValue()) {
             rentalManage.setReturnedAt(timestamp);
@@ -141,9 +158,4 @@ public class RentalManageService {
         return rentalManage;
     }
 
-   
 }
-
-    
-
-

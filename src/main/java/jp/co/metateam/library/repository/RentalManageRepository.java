@@ -14,20 +14,18 @@ import jp.co.metateam.library.model.RentalManage;
 public interface RentalManageRepository extends JpaRepository<RentalManage, Long> {
     List<RentalManage> findAll();
 
-	Optional<RentalManage> findById(Long id);
+    Optional<RentalManage> findById(Long id);
 
-    //貸出登録可否チェック用のリスト
-    @Query
-    ("SELECT rm FROM RentalManage rm " +
-    " WHERE ( rm.status=0 OR rm.status=1 ) " +
-    " AND ?1 = rm.stock.id " )
+    // 貸出登録可否チェック用のリスト
+    @Query("SELECT rm FROM RentalManage rm " +
+            " WHERE ( rm.status=0 OR rm.status=1 ) " +
+            " AND ?1 = rm.stock.id ")
     List<RentalManage> findByStockIdAndStatusIn(String StockId);
 
-    //貸出編集可否チェック用のリスト取得
-    @Query
-     ("SELECT rm FROM RentalManage rm " +
-      " WHERE ( rm.status=0 OR rm.status=1 ) " +
-      " AND ?1 = rm.stock.id " +
-      " AND ?2 <> rm.id ")
-        List<RentalManage> findByStockIdAndStatusIn(String StockId, Long rentalId);
+    // 貸出編集可否チェック用のリスト取得
+    @Query("SELECT rm FROM RentalManage rm " +
+            " WHERE ( rm.status=0 OR rm.status=1 ) " +
+            " AND ?1 = rm.stock.id " +
+            " AND ?2 <> rm.id ")
+    List<RentalManage> findByStockIdAndStatusIn(String StockId, Long rentalId);
 }
