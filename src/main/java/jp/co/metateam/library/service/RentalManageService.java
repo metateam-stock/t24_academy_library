@@ -72,11 +72,17 @@ public class RentalManageService {
     }
 
     @Transactional
-    public void save(RentalManageDto rentalManageDto) throws Exception {
+    public void save(RentalManageDto rentalManageDto, BindingResult result, String stockId) throws Exception {
         try {
+            Stock rentalBook = stockService.findById(stockId);
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
+            
             if (account == null) {
-                throw new Exception("Account not found.");
+                result.addError(new FieldError("rentalManageDto", "employeeId", "選択された社員番号は存在しません"));
+            }
+
+            if (rentalBook.getStatus() == StockStatus.RENT_NOT_AVAILABLE.getValue()) {
+                result.addError(new FieldError("rentalManageDto", "stockId", "選択された在庫管理番号が存在しません"));
             }
 
             Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);

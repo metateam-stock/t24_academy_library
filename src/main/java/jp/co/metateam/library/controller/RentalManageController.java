@@ -99,8 +99,18 @@ public class RentalManageController {
     public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result,
             RedirectAttributes ra, Model model) {
         try {
+            String dateError = rentalManageDto.dateRentalReturnError();
+            String statusError = rentalManageDto.rentalAddStatusError();
             String rentalOnDateError = findAvailableWithRentalDate(rentalManageDto, rentalManageDto.getStockId());
             String returnOnDateError = findAvailableWithRentalDate(rentalManageDto, rentalManageDto.getStockId());
+
+            if (dateError != null) {
+                result.addError(new FieldError("rentalManageDto", "expectedRentalOn", dateError));
+            }
+
+            if (statusError != null) {
+                result.addError(new FieldError("rentalManageDto", "status", statusError));
+            }
 
             if (rentalOnDateError != null) {
                 result.addError(new FieldError("rentalManageDto", "expectedRentalOn", rentalOnDateError));
@@ -114,7 +124,7 @@ public class RentalManageController {
                 throw new Exception("Validation error.");
             }
             // 登録処理
-            this.rentalManageService.save(rentalManageDto);
+            this.rentalManageService.save(rentalManageDto, result, rentalManageDto.getStockId());
 
             return "redirect:/rental/index";
         } catch (Exception e) {

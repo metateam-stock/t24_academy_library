@@ -49,6 +49,16 @@ public class RentalManageDto {
     @NotNull(message = "返却予定日は必須です")
     private Date expectedReturnOn;
 
+    public String rentalAddStatusError() {
+        if (this.status == RentalStatus.RETURNED.getValue()) {
+            return "貸出登録で「返却済み」は選択できません";
+        }
+        if (this.status == RentalStatus.CANCELED.getValue()) {
+            return "貸出登録で「キャンセル」は選択できません";
+        }
+        return null;
+    }
+
     // 貸出日<返却日
     public String dateRentalReturnError() {
         if (this.expectedRentalOn.compareTo(expectedReturnOn) > 0) {
@@ -58,13 +68,13 @@ public class RentalManageDto {
     }
 
     public String isStatusError(Integer pastStatus) {
-        //変更前のステータスが貸出待ちのとき
+        // 変更前のステータスが貸出待ちのとき
         if (pastStatus == RentalStatus.RENT_WAIT.getValue()) {
             if (this.status == RentalStatus.RETURNED.getValue()) {
                 return "「貸出待ち」から「返却済み」は選択できません";
             }
         }
-        //変更前のステータスが貸出中のとき
+        // 変更前のステータスが貸出中のとき
         if (pastStatus == RentalStatus.RENTALING.getValue()) {
             if (this.status == RentalStatus.RENT_WAIT.getValue()) {
                 return "「貸出中」から「貸出待ち」は選択できません";
@@ -73,27 +83,27 @@ public class RentalManageDto {
                 return "「貸出中」から「キャンセル」は選択できません";
             }
         }
-        //変更前のステータスが返却済みのとき
-        if(pastStatus == RentalStatus.RETURNED.getValue()){
-            if(this.status == RentalStatus.RENT_WAIT.getValue()){
+        // 変更前のステータスが返却済みのとき
+        if (pastStatus == RentalStatus.RETURNED.getValue()) {
+            if (this.status == RentalStatus.RENT_WAIT.getValue()) {
                 return "「返却済み」から「貸出待ち」は選択できません";
             }
-            if(this.status == RentalStatus.RENTALING.getValue()){
+            if (this.status == RentalStatus.RENTALING.getValue()) {
                 return "「返却済み」から「貸出中」は選択できません";
             }
-            if(this.status == RentalStatus.CANCELED.getValue()){
+            if (this.status == RentalStatus.CANCELED.getValue()) {
                 return "「返却済み」から「貸出待ち」は選択できません";
             }
         }
-        //変更前のステータスがキャンセルのとき
-        if(pastStatus == RentalStatus.CANCELED.getValue()){
-            if(this.status == RentalStatus.RENT_WAIT.getValue()){
+        // 変更前のステータスがキャンセルのとき
+        if (pastStatus == RentalStatus.CANCELED.getValue()) {
+            if (this.status == RentalStatus.RENT_WAIT.getValue()) {
                 return "「キャンセル」から「貸出待ち」は選択できません";
             }
-            if(this.status == RentalStatus.RENTALING.getValue()){
+            if (this.status == RentalStatus.RENTALING.getValue()) {
                 return "「キャンセル」から「貸出中」は選択できません";
             }
-            if(this.status == RentalStatus.RETURNED.getValue()){
+            if (this.status == RentalStatus.RETURNED.getValue()) {
                 return "「キャンセル」から「返却済み」は選択できません";
             }
         }
