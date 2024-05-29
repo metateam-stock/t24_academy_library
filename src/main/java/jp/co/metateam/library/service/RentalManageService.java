@@ -110,7 +110,7 @@ public class RentalManageService {
     public void update(Long rentalId, RentalManageDto rentalManageDto, BindingResult result, String stockId)
             throws Exception {
         try {
-            RentalManage rentalManage = this.findById(rentalId);
+            //RentalManage rentalManage = this.findById(rentalId);
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
             RentalManage updateTargetBook = this.rentalManageRepository.findById(rentalId).orElse(null);
             Stock stock = this.stockRepository.findById(rentalManageDto.getStockId()).orElse(null);
@@ -135,8 +135,8 @@ public class RentalManageService {
                 throw new Exception("Validation error.");
             }
 
-            updateTargetBook = setRentalStatusDate(rentalManage, rentalManageDto.getStatus());
-
+            updateTargetBook = setRentalStatusDate(updateTargetBook, rentalManageDto.getStatus());
+            
             updateTargetBook.setAccount(account);
             updateTargetBook.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
             updateTargetBook.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());

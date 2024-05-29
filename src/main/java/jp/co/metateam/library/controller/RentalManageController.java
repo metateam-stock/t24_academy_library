@@ -189,7 +189,7 @@ public class RentalManageController {
 
             // 貸出予定日<返却予定日のエラーチェックにエラーがあればresultに追加
             if (dateError != null) {
-                result.addError(new FieldError("rentalManageDto", "expectedRentalOn", dateError));
+                result.addError(new FieldError("rentalManageDto", "expectedRentalOn", dateError));                
             }
 
             // ステータスチェックの結果(エラー文or null)をresultに追加
@@ -245,10 +245,8 @@ public class RentalManageController {
                 if (rentalManageDto.getExpectedRentalOn().compareTo(exist.getExpectedReturnOn()) <= 0) {
                     return "選択された日付は登録済みの貸出情報と重複しています";
                 }
-            }
-            return "選択された日付は登録済みの貸出情報と重複しています";
-        }
-        return null;
+            }        
+        }return null;
     }
 
     // 貸出編集の可否チェックメソッド
