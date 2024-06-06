@@ -3,6 +3,9 @@ package jp.co.metateam.library.model;
 import jp.co.metateam.library.values.RentalStatus;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
 
@@ -63,6 +66,61 @@ public class RentalManageDto {
         }
         return Optional.empty();
 
+    }
+
+    // 日付チェック
+    public String isDateError(RentalManage rentalManage, RentalManageDto rentalManageDto) {
+        // 現在の日時
+        LocalDate nowDate = LocalDate.now(ZoneId.of("Asia/Tokyo"));
+
+        // status 古いのと新しいの
+        Integer prestatus = rentalManage.getStatus();
+        Integer poststatus = rentalManageDto.getStatus();
+
+        // expectedを二つ
+        LocalDate expectedRentalOn = rentalManageDto.getExpectedRentalOn().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        LocalDate expectedReturnOn = rentalManageDto.getExpectedReturnOn().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        // if文・貸出待ち→貸出中、・貸出中→返却済み
+        if (prestatus == 0 && poststatus == 1) {
+            if (!expectedRentalOn.equals(nowDate)) {
+                return "貸出予定日は現在の日付を選択してください。";
+            }
+        }
+
+        if (prestatus == 1 && poststatus == 2) {
+            if (!expectedReturnOn.equals(nowDate)) {
+                return "返却予定日は現在の日付を選択してください。";
+            }
+        }
+        return null;
+    }
+
+    // 貸出予定日＜返却予定日
+    public String orderRentalDate(RentalManageDto rentalManageDto) {
+        Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
+        Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
+
+        if (!expectedRentalOn.before(expectedReturnOn)) {
+            return "返却予定日は貸出予定日より後の日付を入力してください.";
+        }
+        return null;
+    }
+
+    // 日付Format
+    public String validDateFormat(RentalManageDto rentalManageDto) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+
+        String expectedRentalOnStr = sdf.format(rentalManageDto.getExpectedRentalOn());
+        String expectedReturnOnStr = sdf.format(rentalManageDto.getExpectedReturnOn());
+
+        if (!expectedRentalOnStr.matches("\\d{4}/\\d{2}/\\d{2}")
+                || !expectedReturnOnStr.matches("\\d{4}/\\d{2}/\\d{2}")) {
+            return "yyyy/mm/ddのフォーマットで入力してください";
+        }
+        return null;
     }
 
 }

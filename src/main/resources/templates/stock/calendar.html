@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{common :: meta_header('在庫カレンダー',~{::link},~{::script})}">
     <title th:text="${title}+' | MTLibrary'"></title>
     <link rel="stylesheet" th:href="@{/css/stock/calendar.css}" />
     <script type="text/javascript" th:src="@{/js/stock/add.js}"></script>
 </head>
+
 <body>
     <div class="contents">
         <div th:replace="~{common :: main_sidebar}"></div>
@@ -29,16 +31,26 @@
                             <tr>
                                 <th class="header_book" rowspan="2">書籍名</th>
                                 <th class="header_stock" rowspan="2">在庫数</th>
-                                <th class="header_days" th:colspan="${daysInMonth}" th:text="${targetYear + '年' + targetMonth + '月'}"></th>
-                            </tr>
+                                <th class="header_days" th:colspan="${daysInMonth}"
+                                    th:text="${targetYear + '年' + targetMonth + '月'}"></th>
                             <tr class="days">
-                                <th th:each="day : ${daysOfWeek}" th:text="${day}"></th>
+                                <th th:each="day : ${daysOfWeek}" th:text="${day}"
+                                    th:classappend="${day.contains('土')} ? 'saturday' : (${day.contains('日')} ? 'sunday' : '')">
+                                </th>
+
                             </tr>
                         </thead>
+                        <!-- FIXME ControllerやService側の処理とともに表示方法を考える -->
                         <tbody>
-                            <tr>
-                                <!-- FIXME ControllerやService側の処理とともに表示方法を考える -->
-                                <td th:each="stock, stat : ${stocks}" th:text="${stock}"></td>
+                            <tr th:each="stock: ${stocks}">
+                                <td th:text="${stock[0].title}"></td> <!-- 一つ目の値 -->
+                                <td th:text="${stock[0].stockCount}"></td> <!-- 二つ目の値 -->
+                                <td th:each="rentalstock : ${stock}">
+                                    <span th:if="${rentalstock.countAvailableRental le 0}" th:text="${'×'}"></span>
+                                    <a th:if="${rentalstock.countAvailableRental gt 0}"
+                                        th:href="@{/rental/add(stockId=${rentalstock.stockId}, expectedRentalOn=${#dates.format(rentalstock.expectedRentalOn, 'yyyy-MM-dd')})}"
+                                        th:text="${rentalstock.countAvailableRental}"></a>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

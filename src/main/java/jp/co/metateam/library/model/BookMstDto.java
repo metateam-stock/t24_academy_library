@@ -2,8 +2,6 @@ package jp.co.metateam.library.model;
 
 import java.security.Timestamp;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,15 +11,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BookMstDto {
-    
-    private Long id; 
-    
+
+    private Long id;
+
     private String isbn;
 
     private String title;
-    
+
     private long stockCount;
-    
+
     private Timestamp deletedAt;
 
     private BookMst bookMst;

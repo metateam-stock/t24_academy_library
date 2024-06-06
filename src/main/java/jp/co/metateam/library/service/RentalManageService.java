@@ -112,6 +112,9 @@ public class RentalManageService {
         return rentalManage;
     }
 
+    // 現在日時取得
+    Date date = new Date();
+
     @Transactional
     public void update(Long id, RentalManageDto rentalManageDto) throws Exception {
         try {

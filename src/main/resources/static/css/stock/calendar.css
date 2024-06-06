@@ -9,6 +9,7 @@
     max-width: 1200px;
     overflow: scroll;
 }
+
 #calendar_table {
     width: 100%;
     border-collapse: collapse;
@@ -34,4 +35,12 @@
 #calendar_table tr.days th {
     padding: 5px;
     font-size: 14px;
+}
+
+.saturday {
+    color: blue;
+}
+
+.sunday {
+    color: red;
 }
