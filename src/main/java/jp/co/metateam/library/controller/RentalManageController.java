@@ -4,15 +4,17 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
+import java.util.Optional;
 import jakarta.validation.Valid;
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.AccountDto;
@@ -74,7 +76,7 @@ import org.springframework.validation.FieldError;
 
 
 @GetMapping("/rental/add") 
-public String add(Model model) {
+public String add(@RequestParam(required = false) String stockId, @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date expectedRentalOn, Model model) {//リンク押下した時の情報を取得
     List <Account> accounts = this.accountService.findAll();
     List <Stock> stockList = this.stockService.findAll();
         
@@ -82,26 +84,38 @@ public String add(Model model) {
     model.addAttribute("stockList", stockList);
     model.addAttribute("accounts",accounts);
     if (!model.containsAttribute("rentalManageDto")) { 
-        model.addAttribute("rentalManageDto", new RentalManageDto()); 
+      RentalManageDto rentalManageDto = new RentalManageDto();//新しいrentalmanageDtoを作る  
+        if(stockId !=null && expectedRentalOn !=null){
+        rentalManageDto.setStockId(stockId);
+        rentalManageDto.setExpectedRentalOn(expectedRentalOn);
+
+
     }
+    model.addAttribute("rentalManageDto", rentalManageDto);
+}
     return "rental/add";   
-}        
+    }        
         
         @PostMapping("/rental/add") 
         public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) { 
             try { 
+                if (result.hasErrors()) { 
+                    throw new Exception("Validation error."); 
+                } 
                 String errorMessage = checkInventoryStatus(rentalManageDto.getStockId());
                 if (errorMessage !=null){
                     result.addError(new FieldError("rentalManageDto","stockId",errorMessage));
+                    throw new Exception("Validation error."); 
                 }
                 String errorText = Datecheck (rentalManageDto,rentalManageDto.getStockId());
                 if (errorText != null){
                     result.addError(new FieldError("rentalManageDto","expectedRentalOn",errorText));
                     result.addError(new FieldError("rentalManageDto","expectedReturnOn",errorText));
-                }
-                if (result.hasErrors()) { 
                     throw new Exception("Validation error."); 
-                } 
+                }
+                // if (result.hasErrors()) { 
+                //     throw new Exception("Validation error."); 
+                // } 
     
                 // 登録処理 
     
@@ -120,7 +134,6 @@ public String add(Model model) {
     
         @GetMapping("/rental/{id}/edit")
         public String edit(@PathVariable("id") Long id, Model model) {
-            List <RentalManage> rentalManageList = this.rentalManageService.findAll();
             List <Account> accountList = this.accountService.findAll();
             List <Stock> stockList = this.stockService.findAll();
     
@@ -164,7 +177,16 @@ public String add(Model model) {
     
             LocalDateTime expectedRentalOnLdt = Instant.ofEpochMilli(expectedRentalOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
             LocalDateTime expectedReturnOnLdt = Instant.ofEpochMilli(expectedReturnOn.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-    
+            Optional<String> dayError = rentalManageDto.ValidDateTime(expectedRentalOn,expectedReturnOn);
+ 
+            if(dayError.isPresent()){
+                FieldError fieldError = new FieldError("rentalManageDto","expectedReturnOn", dayError.get());
+                //dateErrorから取得したエラーメッセージをfieldErrorに入れる
+                result.addError(fieldError);
+                //resultにエラーの情報を入れる
+                throw new Exception("Validation error");
+                //エラーを投げる
+            }
             if (newStatus == 1 && ldt.isBefore(expectedRentalOnLdt)) {
                 FieldError fieldError = new FieldError("rentalManageDto", "expectedRentalOn", "貸出予定日が未来のためこのステータスは選択できません");
                 result.addError(fieldError);
@@ -245,8 +267,3 @@ public String add(Model model) {
     } 
 }
     
-    
-    
-    
-    
-     
