@@ -4,9 +4,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.ui.Model;
@@ -27,7 +29,7 @@ import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.BookMstDto;
 import jp.co.metateam.library.service.BookMstService;
-
+import java.util.Optional;
 
 /**
  * 貸出管理関連クラスß
@@ -70,7 +72,8 @@ public class RentalManageController {
     }
 
     @GetMapping("/rental/add")
-    public String add(Model model) {
+    public String add(@RequestParam(required = false) String stockId, @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date expectedRentalOn, Model model) {
+//リンク押下した時の情報を取得) {
         List<Account> accountList = this.accountService.findAll();
         List<Stock> stockList = this.stockService.findAll();
 
@@ -79,7 +82,13 @@ public class RentalManageController {
         model.addAttribute("stockList", stockList);
 
         if (!model.containsAttribute("rentalManageDto")) {
-            model.addAttribute("rentalManageDto", new RentalManageDto());
+            RentalManageDto rentalManageDto = new RentalManageDto();
+            if(stockId != null && expectedRentalOn != null){
+                rentalManageDto.setStockId(stockId);
+                rentalManageDto.setExpectedRentalOn(expectedRentalOn);
+                
+        }
+        model.addAttribute("rentalManageDto", new RentalManageDto());
         }
 
         return "rental/add";
@@ -91,6 +100,7 @@ public class RentalManageController {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
+
             //SQLに追加
             Long log = rentalManageService.countByStockIdAndStatusIn(rentalManageDto.getStockId());
             Long loggic = rentalManageService.countByStockIdAndStatusAndTermsIn(rentalManageDto.getStockId(), rentalManageDto.getExpectedRentalOn(), rentalManageDto.getExpectedReturnOn());
@@ -149,6 +159,23 @@ public class RentalManageController {
     public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra, Model model) {
         try {
 
+            
+            /*Date expectedRentalOn = rentalManageDto.getExpectedRentalOn();
+            Date expectedReturnOn = rentalManageDto.getExpectedReturnOn();
+               
+            Optional<String> dayError = rentalManageDto.ValidDateTime(expectedRentalOn,expectedReturnOn);
+ 
+            if(dayError.isPresent()){
+                FieldError fieldError = new FieldError("rentalManageDto","expectedRentalOn", dayError.get());
+                FieldError fieldError = new FieldError("rentalManageDto","expectedReturnOn", dayError.get());
+                //dateErrorから取得したエラーメッセージをfieldErrorに入れる
+                result.addError(fieldError);
+                //resultにエラーの情報を入れる
+                throw new Exception("Validation error");
+                //エラーを投げる
+            }*/
+
+
             RentalManage rentalManage = this.rentalManageService.findById(Long.valueOf(id));
             String validerror = rentalManageDto.isValidStatus(rentalManage.getStatus());
             //ステータスチェック
@@ -179,12 +206,31 @@ public class RentalManageController {
 
                     //日付重複チェック
                     if(!(stockcount == rentalcount)){
-                        String rentalError = "この書籍は貸出できません";
+                        String rentalError = "期間が重複しています";
                         result.addError(new FieldError("rentalManageDto", "expectedRentalOn", rentalError));
                         result.addError(new FieldError("rentalManageDto", "expectedReturnOn", rentalError));
                         throw new Exception("StockStatus record not found,");
                     }                    
                 }
+
+                /*if (newStatus == 1 && ldt.isBefore(expectedRentalOnLdt)) {
+                    FieldError fieldError = new FieldError("rentalManageDto", "expectedRentalOn", "貸出予定日が未来のためこのステータスは選択できません");
+                    result.addError(fieldError);
+                    throw new Exception("Validation error.");
+       
+                } else if (newStatus == 2 && ldt.isBefore(expectedReturnOnLdt)) {
+                    FieldError fieldError = new FieldError("rentalManageDto", "expectedReturnOn", "返却予定日が未来のためこのステータスは選択できません");
+                        result.addError(fieldError);
+                        throw new Exception("Validation error.");
+       
+                } else if ((status == newStatus) || (status == 0 && (newStatus == 1 || newStatus == 3)) || (status == 1 && newStatus == 2)) {
+                    this.rentalManageService.update(id, rentalManageDto);
+       
+                } else {
+                    FieldError fieldError = new FieldError("rentalManageDto", "status", "このステータスは選択できません");
+                    result.addError(fieldError);
+                throw new Exception("Validation error.");
+                }*/
             }
             
             if (result.hasErrors()) {
@@ -196,7 +242,7 @@ public class RentalManageController {
             this.rentalManageService.update(Long.valueOf(id), rentalManageDto);
 
             return "redirect:/rental/index";
-        } catch (Exception e) {
+           } catch (Exception e) {
             log.error(e.getMessage());
 
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);

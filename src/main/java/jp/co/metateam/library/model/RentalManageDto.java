@@ -47,13 +47,14 @@ public class RentalManageDto {
 
     private Account account;
 
+
 //貸出ステータスチェック
     public String isValidStatus(Integer previousStatus) {
 
         //RentalManage rentalManage = this.RentalManageService.findById(Long.valueOf(id));
 
-        if(previousStatus == RentalStatus.RENT_WAIT.getValue() && this.status == RentalStatus.CANCELED.getValue()) {
-            return "貸出ステータスは「貸出待ち」から「キャンセル」に変更できません";
+        if(previousStatus == RentalStatus.RENT_WAIT.getValue() && this.status == RentalStatus.RETURNED.getValue()) {
+            return "貸出ステータスは「貸出待ち」から「返却済み」に変更できません";
         }else if(previousStatus == RentalStatus.RENTAlING.getValue() && this.status == RentalStatus.RENT_WAIT.getValue()) {
             return "貸出ステータスは「貸出中」から「貸出待ち」に変更できません";
         }else if(previousStatus == RentalStatus.RENTAlING.getValue() && this.status == RentalStatus.CANCELED.getValue()) {
@@ -74,13 +75,12 @@ public class RentalManageDto {
         return null;
     }
 
-    /*if(preStatus == RentalStatus.RENT_WAIT.getValue() && this.status == RentalStatus.RENTAlING.getValue()) {
-        return null;
-    }else if(preStatus == RentalStatus.RENT_WAIT.getValue() && this.status == RentalStatus.CANCELED.getValue()) {
-       return null;
-    }else if(preStatus == RentalStatus.RENTAlING.getValue() && this.status == RentalStatus.RETURNED.getValue()) {
-        return null;
-    }else if(preStatus == RentalStatus.RENTAlING.getValue() && this.status == RentalStatus.RENT_WAIT.getValue()) {
-        return null;
+    /*public Optional<String> ValidDateTime(Date expectedRentalOn, Date expectedReturnOn) {
+ 
+        if (expectedRentalOn.compareTo(expectedReturnOn) >=0){
+ 
+            return Optional.of("「返却予定日」は「貸出予定日」より後の日付けを入力してください");
+        }
+        return Optional.empty();
     }*/
 }
