@@ -3,18 +3,27 @@ package jp.co.metateam.library.model;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import javax.print.CancelablePrintJob;
+
 import org.springframework.format.annotation.DateTimeFormat;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jp.co.metateam.library.values.RentalStatus;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Optional;
+
+
 
 /**
  * 貸出管理DTO
  */
 @Getter
 @Setter
+
 public class RentalManageDto {
 
     private Long id;
@@ -45,4 +54,11 @@ public class RentalManageDto {
     private Stock stock;
 
     private Account account;
-}
+
+  }
+
+
+
+
+
+
