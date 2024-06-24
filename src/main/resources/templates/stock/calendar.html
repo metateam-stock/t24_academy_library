@@ -32,13 +32,26 @@
                                 <th class="header_days" th:colspan="${daysInMonth}" th:text="${targetYear + '年' + targetMonth + '月'}"></th>
                             </tr>
                             <tr class="days">
-                                <th th:each="day : ${daysOfWeek}" th:text="${day}"></th>
+                                <th th:each="day : ${daysOfWeek}"
+                                    th:text="${day}"
+                                    th:classappend="${day.contains('(土)')} ? 'saturday' : (${day.contains('(日)')} ? 'sunday' : '')"></th>
                             </tr>
+                            
+                            
                         </thead>
                         <tbody>
-                            <tr>
+                            <tr th:each="calendar : ${stocks}">
                                 <!-- FIXME ControllerやService側の処理とともに表示方法を考える -->
-                                <td th:each="stock, stat : ${stocks}" th:text="${stock}"></td>
+
+                                <td th:text="${calendar[0].title}"></td>
+                                <td th:text="${calendar[0].totalBookCounts}"></td>
+                                <td th:each="daysCalendar : ${calendar}">
+                                    <span th:if="${daysCalendar.countOfDaysBook == '×'}" th:text="${daysCalendar.countOfDaysBook}"></span>
+                                    <span th:if="${daysCalendar.countOfDaysBook != '×'}">
+                                        <a th:href="@{/rental/add(stockId=${daysCalendar.stockId}, expectedRentalOn=${#dates.format(daysCalendar.expectedRentalOn, 'yyyy/MM/dd')})}" th:text="${daysCalendar.countOfDaysBook}"></a>
+                                    </span>
+                                </td>
+                                
                             </tr>
                         </tbody>
                     </table>
