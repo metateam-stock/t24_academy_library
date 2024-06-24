@@ -103,14 +103,16 @@ public class RentalManageController {
             // throw new Exception("Validation error.");
             // }
 
-            String errorMessageInventoryStatus = CheckInventoryStatus(rentalManageDto.getStockId());
+            String errorMessageInventoryStatus = this.rentalManageService
+                    .checkInventoryStatus(Long.valueOf(rentalManageDto.getStockId()));
             if (errorMessageInventoryStatus != null) {
                 result.addError(
                         new FieldError("rentalManageDto", "stockId", errorMessageInventoryStatus));
             }
 
             // 貸出期間重複チェックの１つ目のメソッドを呼び出す処理
-            String errorMessageFirstDuration = firstAvailabilityCheckForLending(rentalManageDto,
+            String errorMessageFirstDuration = this.rentalManageService.firstAvailabilityCheckForLending(
+                    rentalManageDto,
                     rentalManageDto.getStockId());
 
             if (errorMessageFirstDuration != null) {
@@ -203,7 +205,8 @@ public class RentalManageController {
             }
 
             // 貸出期間重複チェックの2つ目のメソッドを呼び出す処理
-            String errorMessageSecondDuration = secondAvailabilityCheckForLending(rentalManageDto,
+            String errorMessageSecondDuration = this.rentalManageService.secondAvailabilityCheckForLending(
+                    rentalManageDto,
                     rentalManageDto.getStockId(),
                     rentalManageDto.getId());
 
@@ -229,45 +232,55 @@ public class RentalManageController {
         }
     }
 
-    // 在庫ステータスチェック
-    private String CheckInventoryStatus(String id) {
-        Stock stock = this.stockService.findById(id);
-        if (stock.getStatus() == 0) {
-            return null; // 利用可→エラーメッセージなし
-        } else {
-            return "この本はご利用できません"; // 利用不可→エラーメッセージを設定
-        }
-    }
+    // // 在庫ステータスチェック
+    // private String CheckInventoryStatus(String id) {
+    // Stock stock = this.stockService.findById(id);
+    // if (stock.getStatus() == 0) {
+    // return null; // 利用可→エラーメッセージなし
+    // } else {
+    // return "この本はご利用できません"; // 利用不可→エラーメッセージを設定
+    // }
+    // }
 
-    // 貸出期間重複チェック「貸出登録の時」⇒貸出管理番号が付与されていない状態(引数が貸出編集の時と異なるため、違うメソッドが必要)
-    public String firstAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id) {
-        List<RentalManage> rentalManageList = this.rentalManageService.findByStockIdAndStatusIn(id);
-        if (rentalManageList != null) {
-            for (RentalManage rentalManage : rentalManageList) {
-                if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
-                        rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
-                    return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
-                }
-            }
-            return null;
-        } else {
-            return null;
-        }
-    }
+    // // 貸出期間重複チェック「貸出登録の時」⇒貸出管理番号が付与されていない状態(引数が貸出編集の時と異なるため、違うメソッドが必要)
+    // public String firstAvailabilityCheckForLending(RentalManageDto
+    // rentalManageDto, String id) {
+    // List<RentalManage> rentalManageList =
+    // this.rentalManageService.findByStockIdAndStatusIn(id);
+    // if (rentalManageList != null) {
+    // for (RentalManage rentalManage : rentalManageList) {
+    // if
+    // (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn())
+    // &&
+    // rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn()))
+    // {
+    // return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
+    // }
+    // }
+    // return null;
+    // } else {
+    // return null;
+    // }
+    // }
 
-    // 貸出期間重複チェック「貸出編集の時」⇒貸出管理番号が付与されている状態(引数が貸出登録の時と異なるため、違うメソッドが必要)
-    public String secondAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id, Long rentalId) {
-        List<RentalManage> rentalManageList = this.rentalManageService.findByStockIdAndStatusIn(id, rentalId);
-        if (rentalManageList != null) {
-            for (RentalManage rentalManage : rentalManageList) {
-                if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
-                        rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
-                    return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
-                }
-            }
-            return null;
-        } else {
-            return null;
-        }
-    }
+    // // 貸出期間重複チェック「貸出編集の時」⇒貸出管理番号が付与されている状態(引数が貸出登録の時と異なるため、違うメソッドが必要)
+    // public String secondAvailabilityCheckForLending(RentalManageDto
+    // rentalManageDto, String id, Long rentalId) {
+    // List<RentalManage> rentalManageList =
+    // this.rentalManageService.findByStockIdAndStatusIn(id, rentalId);
+    // if (rentalManageList != null) {
+    // for (RentalManage rentalManage : rentalManageList) {
+    // if
+    // (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn())
+    // &&
+    // rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn()))
+    // {
+    // return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
+    // }
+    // }
+    // return null;
+    // } else {
+    // return null;
+    // }
+    // }
 }

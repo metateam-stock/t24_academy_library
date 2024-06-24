@@ -15,6 +15,8 @@ import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.repository.AccountRepository;
 import jp.co.metateam.library.repository.RentalManageRepository;
 import jp.co.metateam.library.repository.StockRepository;
+import jp.co.metateam.library.service.RentalManageService;
+import jp.co.metateam.library.service.StockService;
 import jp.co.metateam.library.values.RentalStatus;
 
 @Service
@@ -132,5 +134,47 @@ public class RentalManageService {
     public List<RentalManage> findByStockIdAndStatusIn(String Id, Long rentalId) {
         List<RentalManage> rentalManages = this.rentalManageRepository.findByStockIdAndStatusIn(Id, rentalId);
         return rentalManages;
+    }
+
+    // 在庫ステータスチェック
+    public String checkInventoryStatus(Long id) {
+        RentalManage rentalManage = findById(id);
+        if (rentalManage.getStatus() == 0) {
+            return null; // 利用可→エラーメッセージなし
+        } else {
+            return "この本はご利用できません"; // 利用不可→エラーメッセージを設定
+        }
+    }
+
+    // 貸出期間重複チェック「貸出登録の時」⇒貸出管理番号が付与されていない状態(引数が貸出編集の時と異なるため、違うメソッドが必要)
+    public String firstAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id) {
+        List<RentalManage> rentalManageList = findByStockIdAndStatusIn(id);
+        if (rentalManageList != null) {
+            for (RentalManage rentalManage : rentalManageList) {
+                if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
+                        rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
+                    return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
+                }
+            }
+            return null;
+        } else {
+            return null;
+        }
+    }
+
+    // 貸出期間重複チェック「貸出編集の時」⇒貸出管理番号が付与されている状態(引数が貸出登録の時と異なるため、違うメソッドが必要)
+    public String secondAvailabilityCheckForLending(RentalManageDto rentalManageDto, String id, Long rentalId) {
+        List<RentalManage> rentalManageList = findByStockIdAndStatusIn(id, rentalId);
+        if (rentalManageList != null) {
+            for (RentalManage rentalManage : rentalManageList) {
+                if (rentalManageDto.getExpectedReturnOn().after(rentalManage.getExpectedRentalOn()) &&
+                        rentalManageDto.getExpectedRentalOn().before(rentalManage.getExpectedReturnOn())) {
+                    return "貸出期間が重複しているため、この本を借りることができません。日付を変更してください。";
+                }
+            }
+            return null;
+        } else {
+            return null;
+        }
     }
 }
