@@ -2,8 +2,10 @@ package jp.co.metateam.library.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
@@ -63,7 +66,9 @@ public class RentalManageController {
     }
 
     @GetMapping("/rental/add")
-    public String add(Model model) {
+    public String add(@RequestParam(value = "stockId", required = false) String stockId,
+            @RequestParam(value = "expectedRentalOn", required = false) @DateTimeFormat(pattern = "yyyy/MM/dd") Date expectedRentalOn,
+            Model model) {
 
         List<Account> accountList = this.accountService.findAll();
         List<Stock> stockList = this.stockService.findStockAvailableAll();
@@ -73,8 +78,19 @@ public class RentalManageController {
         model.addAttribute("rentalStatus", RentalStatus.values());
 
         if (!model.containsAttribute("rentalManageDto")) {
-            model.addAttribute("rentalManageDto", new RentalManageDto());
+            // メソッド内で、RentalManageDtoオブジェクトがまだモデルに含まれていない場合、新しいオブジェクトが作成され、必要に応じてstockIdとexpectedRentalOnが設定される
+            RentalManageDto rentalManageDto = new RentalManageDto();
+            if (stockId != null) {
+                rentalManageDto.setStockId(stockId);
+            }
+            if (expectedRentalOn != null) {
+                rentalManageDto.setExpectedRentalOn(expectedRentalOn);
+            }
+            model.addAttribute("rentalManageDto", rentalManageDto);
         }
+
+        model.addAttribute("stockId", stockId);
+        model.addAttribute("expectedRentalOn", expectedRentalOn);
 
         return "rental/add";
     }
