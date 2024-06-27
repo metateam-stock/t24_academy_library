@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{common :: meta_header('在庫カレンダー',~{::link},~{::script})}">
     <title th:text="${title}+' | MTLibrary'"></title>
     <link rel="stylesheet" th:href="@{/css/stock/calendar.css}" />
     <script type="text/javascript" th:src="@{/js/stock/add.js}"></script>
 </head>
+
 <body>
     <div class="contents">
         <div th:replace="~{common :: main_sidebar}"></div>
@@ -29,18 +31,24 @@
                             <tr>
                                 <th class="header_book" rowspan="2">書籍名</th>
                                 <th class="header_stock" rowspan="2">在庫数</th>
-                                <th class="header_days" th:colspan="${daysInMonth}" th:text="${targetYear + '年' + targetMonth + '月'}"></th>
+                                <th class="header_days" th:colspan="${daysInMonth}"
+                                    th:text="${targetYear + '年' + targetMonth + '月'}"></th>
                             </tr>
                             <tr class="days">
                                 <th th:each="day : ${daysOfWeek}" th:text="${day}"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <!-- FIXME ControllerやService側の処理とともに表示方法を考える -->
-                                <td th:each="stock, stat : ${stocks}" th:text="${stock}"></td>
+                            <tr th:each="bookMst : ${stocks}">
+                                <td th:text="${bookMst.title}"></td>                              
+                                <td th:text="${bookMst.stockCount}"></td>  
+                                <td th:each="dailyStock : ${bookMst.stockList}" >
+                                    <a th:href="@{/rental/{id}/{rentalDay}/add(id=${bookMst.id},rentalDay=${dailyStock.selectedDay})}" th:text="${dailyStock.stockCount}" th:if="${dailyStock.stockCount !='×'}"> </a>
+                                    <span th:text="${dailyStock.stockCount}" th:if="${dailyStock.stockCount =='×'}" ></span>
+                                </td>          
                             </tr>
-                        </tbody>
+                            <!-- FIXME ControllerやService側の処理とともに表示方法を考える -->
+                        </tbody>                                      
                     </table>
                 </div>
             </div>

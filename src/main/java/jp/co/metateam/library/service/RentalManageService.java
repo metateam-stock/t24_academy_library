@@ -1,14 +1,15 @@
 package jp.co.metateam.library.service;
 
 import java.sql.Timestamp;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
 
-import io.micrometer.common.util.StringUtils;
+
+
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.RentalManageDto;
@@ -154,5 +155,7 @@ public class RentalManageService {
         List<RentalManage> rentalAvailable  = this.rentalManageRepository.findByStockIdAndStatusIn(stockId);
         return rentalAvailable;
     }
+
+   
 }
 

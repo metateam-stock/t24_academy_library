@@ -1,7 +1,11 @@
 package jp.co.metateam.library.controller;
 
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,26 +13,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import jp.co.metateam.library.service.AccountService;
 import jp.co.metateam.library.service.RentalManageService;
 import jp.co.metateam.library.service.StockService;
+import jp.co.metateam.library.service.BookMstService;
 import lombok.extern.log4j.Log4j2;
 import jp.co.metateam.library.model.RentalManage;
 
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import io.micrometer.common.util.StringUtils;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
 import jp.co.metateam.library.model.RentalManageDto;
+
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-
 import jp.co.metateam.library.values.RentalStatus;
 import jp.co.metateam.library.model.Stock;
-import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.model.Account;
-import jp.co.metateam.library.model.AccountDto;
 
 /**
  * 貸出管理関連クラスß
@@ -45,7 +47,7 @@ public class RentalManageController {
     public RentalManageController(
             AccountService accountService,
             RentalManageService rentalManageService,
-            StockService stockService) {
+            StockService stockService, BookMstService bookMstService) {
         this.accountService = accountService;
         this.rentalManageService = rentalManageService;
         this.stockService = stockService;
@@ -72,10 +74,32 @@ public class RentalManageController {
         return "rental/index";
     }
 
+    @GetMapping("/rental/{id}/{rentalDay}/add")
+    public String add(Model model,
+            @PathVariable("id") Long id,
+            @PathVariable("rentalDay") String selectedDay) throws Exception {
+        List<Account> accounts = this.accountService.findAll();
+        Date expectedRentalOn = new SimpleDateFormat("yyyy-MM-dd").parse(selectedDay);
+
+        List<Stock> stockList = this.stockService.getStockId(expectedRentalOn, id);
+
+        model.addAttribute("accounts", accounts);
+        model.addAttribute("rentalStatus", RentalStatus.values());
+        model.addAttribute("stockList", stockList);
+
+        if (!model.containsAttribute("rentalManageDto")) {
+            RentalManageDto rentalManageDto = new RentalManageDto();
+            rentalManageDto.setExpectedRentalOn(expectedRentalOn);
+            model.addAttribute("rentalManageDto", rentalManageDto);
+
+        }
+        return "rental/add";
+    }
+
     @GetMapping("/rental/add")
     public String add(Model model) {
-        List<Stock> stockList = this.stockService.findAll();
         List<Account> accounts = this.accountService.findAll();
+        List<Stock> stockList = this.stockService.findStockAvailableAll();
 
         model.addAttribute("accounts", accounts);
         model.addAttribute("stockList", stockList);
@@ -92,10 +116,9 @@ public class RentalManageController {
     public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result,
             RedirectAttributes ra) {
         try {
-            
+
             String rentalDateError = rentalCheck(rentalManageDto, rentalManageDto.getStockId());
 
-            
             if (rentalDateError != null) {
                 result.addError(new FieldError("rentalManageDto", "expectedRentalOn", rentalDateError));
             }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 import jp.co.metateam.library.model.BookMst;
 import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.model.StockDto;
+import jp.co.metateam.library.model.BookMstDto;
 import jp.co.metateam.library.service.BookMstService;
 import jp.co.metateam.library.service.StockService;
 import jp.co.metateam.library.values.StockStatus;
@@ -41,7 +43,7 @@ public class StockController {
 
     @GetMapping("/stock/index")
     public String index(Model model) {
-        List <Stock> stockList = this.stockService.findAll();
+        List<Stock> stockList = this.stockService.findAll();
 
         model.addAttribute("stockList", stockList);
 
@@ -113,7 +115,8 @@ public class StockController {
     }
 
     @PostMapping("/stock/{id}/edit")
-    public String update(@PathVariable("id") String id, @Valid @ModelAttribute StockDto stockDto, BindingResult result, RedirectAttributes ra) {
+    public String update(@PathVariable("id") String id, @Valid @ModelAttribute StockDto stockDto, BindingResult result,
+            RedirectAttributes ra) {
         try {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
@@ -133,7 +136,11 @@ public class StockController {
     }
 
     @GetMapping("/stock/calendar")
-    public String calendar(@RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month, Model model) {
+    public String calendar(@RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+
+            @RequestParam(required = false) List<String> stock_id,
+            Model model) {
 
         LocalDate today = year == null || month == null ? LocalDate.now() : LocalDate.of(year, month, 1);
         Integer targetYear = year == null ? today.getYear() : year;
@@ -143,14 +150,19 @@ public class StockController {
         Integer daysInMonth = startDate.lengthOfMonth();
 
         List<Object> daysOfWeek = this.stockService.generateDaysOfWeek(targetYear, targetMonth, startDate, daysInMonth);
-        List<String> stocks = this.stockService.generateValues(targetYear, targetMonth, daysInMonth);
+
+        // 書籍のリストを取得
+        List<BookMstDto> bookMsts = this.bookMstService.findTitle();
+        // 貸出可能な在庫数の書籍id取得
+        List<BookMstDto> stockAvailable = this.stockService.findbyBookIdList(bookMsts, stock_id, year, month,
+                daysInMonth);
+        // //貸出可能在庫数を画面に表示
+        model.addAttribute("stocks", stockAvailable);
 
         model.addAttribute("targetYear", targetYear);
         model.addAttribute("targetMonth", targetMonth);
         model.addAttribute("daysOfWeek", daysOfWeek);
         model.addAttribute("daysInMonth", daysInMonth);
-
-        model.addAttribute("stocks", stocks);
 
         return "stock/calendar";
     }

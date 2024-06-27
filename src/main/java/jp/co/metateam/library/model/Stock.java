@@ -18,7 +18,7 @@ import jakarta.persistence.Table;
  * 在庫管理
  */
 @Entity
-@Table(name = "Stocks")
+@Table(name = "stocks")
 public class Stock {
 
     /** 在庫管理番号 */
@@ -95,4 +95,6 @@ public class Stock {
     public void setRentalManages(List<RentalManage> rentalManages) {
         this.rentalManages = rentalManages;
     }
+    
+    
 }
