@@ -18,8 +18,8 @@ function setExpectedReturnOn() {
 
 $(function() {
     // 各日付の最小値を指定（登録日当日の日付）
-    // setExpectedRentalOn();
-    // setExpectedReturnOn();
+    setExpectedRentalOn();
+    setExpectedReturnOn();
 
     // 貸出予定日が変更された場合、返却予定日の最小値を変更
     // 貸出予定日 =< 返却予定日 となるようにする
@@ -27,8 +27,8 @@ $(function() {
         let value = $(this).val();
         $("#expectedReturnOn").val(null);
         if (value === null) {
-            // setExpectedRentalOn();
-            // setExpectedReturnOn();
+            //  setExpectedRentalOn();
+            //  setExpectedReturnOn();
         } else {
             $("#expectedReturnOn").attr("min", $(this).val());
         }

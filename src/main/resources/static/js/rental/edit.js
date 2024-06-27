@@ -11,15 +11,21 @@ function setExpectedRentalOn() {
 }
 
 function setExpectedReturnOn() {
-    const date = dateFormat(new Date(),'YYYY-MM-DD');
-    $("#expectedReturnOn").attr("min", date);
+    let value = $("#expectedRentalOn").val();
+    if (value === null) {
+        const date = dateFormat(new Date(),'YYYY-MM-DD');
+        $("#expectedReturnOn").attr("min", date);
+    } else {
+        $("#expectedReturnOn").attr("min", value);
+    }
+    
 }
 
 
 $(function() {
     // 各日付の最小値を指定（登録日当日の日付）
-    // setExpectedRentalOn();
-    // setExpectedReturnOn();
+    setExpectedRentalOn();
+    setExpectedReturnOn();
 
     // 貸出予定日が変更された場合、返却予定日の最小値を変更
     // 貸出予定日 =< 返却予定日 となるようにする
@@ -27,9 +33,13 @@ $(function() {
         let value = $(this).val();
         $("#expectedReturnOn").val(null);
         if (value === null) {
+            //   setExpectedRentalOn();
+            //   setExpectedReturnOn();
+           
+        } else {
+            
             // setExpectedRentalOn();
             // setExpectedReturnOn();
-        } else {
             $("#expectedReturnOn").attr("min", $(this).val());
         }
     });

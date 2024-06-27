@@ -77,7 +77,7 @@ public class StockService {
                 throw new Exception("Stock record not found.");
             }
 
-            BookMst bookMst = stock.getBookMst();
+            BookMst bookMst = this.bookMstRepository.findById(stockDto.getBookId()).orElse(null);
             if (bookMst == null) {
                 throw new Exception("BookMst record not found.");
             }

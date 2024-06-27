@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +17,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class RentalManageDto {
+public class RentalManageDto  {
 
     private Long id;
 
@@ -46,3 +48,5 @@ public class RentalManageDto {
 
     private Account account;
 }
+
+   
